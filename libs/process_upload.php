@@ -1,0 +1,93 @@
+<?php
+header('Content-Type: application/json');
+require '../vendor/autoload.php';
+require '../config/config.php';
+require '../libs/App.php';
+
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Reader\Xlsx;
+
+$App = new App();
+//var_dump($_POST);
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && !empty($_FILES)) {
+    $inserted_by  = $_SESSION['SESS_MEMBER_ID'];
+    $file = $_FILES['file'];
+    $fileTmpPath = $file['tmp_name'];
+     $counter = trim($_POST['counter']);
+     $allow_id = $_POST['allow_id'];
+
+    if(ctype_digit($counter) || !empty($allow_id)  || ($allow_id != "")) {
+
+        if($_POST['allow_id'] == ""){
+           $response = ["status" => "error", "message" => "Invalid request."];
+            echo json_encode($response);
+            exit();
+        }
+
+        if ($file['error'] == UPLOAD_ERR_OK) {
+            $fileExtension = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+            $allowedfileExtensions = ['xlsx'];
+
+            if (in_array($fileExtension, $allowedfileExtensions)) {
+                $reader = new Xlsx();
+                $spreadsheet = $reader->load($fileTmpPath);
+                $sheet = $spreadsheet->getActiveSheet();
+                $columns = $sheet->toArray();
+
+                // Assume first row contains column names, and start processing from the second row
+                $processedRows = 0;
+                foreach ($columns as $index => $column) {
+                    if ($index == 0) {
+                        continue; // Skip header row
+                    }
+
+                    $staff_id = $column[0];
+                    $value = $column[1];
+
+                    // Validation
+                    if (empty($staff_id) || (!is_numeric($value))) {
+                        continue; // Skip invalid rows
+                    }
+
+                    // Verify if the staff_id exists
+                    $checkStaffQuery = "SELECT COUNT(*) FROM employee WHERE staff_id = :staff_id";
+                    $staffParams = [':staff_id' => $staff_id];
+                    $staffExists = $App->selectOne($checkStaffQuery, $staffParams);
+
+                    if ($staffExists == 0) {
+                        continue; // Skip if staff_id does not exist
+                    }
+                    // Update database with the allowance and deduction
+                    $query = "INSERT INTO allow_deduc (staff_id, allow_id, value,counter,inserted_by,date_insert) 
+                            VALUES (:staff_id, :allow_id, :value,:counter,:inserted_by,now())
+                          ON DUPLICATE KEY UPDATE value = :value, counter = :counter, inserted_by = :inserted_by, date_insert = now()";
+                    $params = [
+                        ':staff_id' => $staff_id,
+                        ':allow_id' => $allow_id,
+                        ':value' => $value,
+                        'counter' => $counter,
+                        ':inserted_by' => $inserted_by
+
+                    ];
+
+                    $result = $App->executeNonSelect($query, $params);
+                    if ($result) {
+                        $processedRows++;
+                    }
+                }
+
+                $response = ["status" => "success", "message" => "Processed $processedRows rows successfully."];
+            } else {
+                $response = ["status" => "error", "message" => "Invalid file type. Please upload an Excel file."];
+            }
+        } else {
+            $response = ["status" => "error", "message" => "Error uploading file."];
+        }
+    }else {
+        $response = ["status" => "error", "message" => "Counter should be a digit."];
+    }
+} else {
+    $response = ["status" => "error", "message" => "Invalid request."];
+}
+echo json_encode($response);
+?>

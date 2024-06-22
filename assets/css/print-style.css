@@ -1,0 +1,62 @@
+@media print {
+    body * {
+        visibility: hidden; /* Hide everything in body */
+    }
+    #payslipModal, #payslipContent * {
+        visibility: visible; /* Only payslip content is visible */
+    }
+    #printButton, #closeButton {
+        display: none;
+    }
+    .scrollable-content {
+        overflow: visible !important;
+        max-height: none !important;
+    }
+    #payslipModal {
+        position: absolute;
+        left: 0;
+        top: 0;
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        backdrop-filter: blur(5px); /* Frosted glass effect */
+        color: black !important; /* Ensures text is black during printing */
+        background-image: url('../images/tasce_background.png');
+        height: auto !important;
+        max-height: none !important;
+        overflow: visible !important;
+
+    }
+    .modal-content {
+        height: 100% !important;
+        max-height: none !important;
+        overflow: visible !important;
+    }
+    .bg-gray-500 {
+        background-color: white !important;
+    }
+
+    .non-printable {
+        display: none !important;
+    }
+}
+
+#payslipModal {
+    /*position: relative;*/
+    background-image: url('../images/tasce_background.png');
+    background-size: contain; /* Cover could also be used depending on how you want the logo displayed */
+    background-repeat: no-repeat;
+    background-position: center center;
+}
+.modal-content {
+    background-color: rgba(255, 255, 255, 0.9); /* Adjust the alpha value for opacity */
+}
+
+.scrollable-content {
+    max-height: 70vh;       /* Fixed height */
+    overflow-y: auto;     /* Enables vertical scrollbar if the content overflows */
+    border: 1px solid #ccc; /* Optional: adds a border around the div */
+    padding: 15px;        /* Optional: adds space inside the div */
+}
+
+
