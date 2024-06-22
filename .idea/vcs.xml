@@ -12,6 +12,5 @@
     <mapping directory="$PROJECT_DIR$/original/report/office_vendor/psr/http-factory" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/original/report/office_vendor/psr/http-message" vcs="Git" />
     <mapping directory="$PROJECT_DIR$/original/report/office_vendor/psr/simple-cache" vcs="Git" />
-    <mapping directory="$PROJECT_DIR$/tascesalary" vcs="Git" />
   </component>
 </project>
