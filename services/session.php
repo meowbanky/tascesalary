@@ -4,15 +4,6 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-function checkAuth($email)
-{
-    if (DatabaseService::getInstance()->checkUser($email)) {
-        setSesstion();
-        return true;
-    } else {
-        return "Email is not valid";
-    }
-}
 
 function setSesstion()
 {

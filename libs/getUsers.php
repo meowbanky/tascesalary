@@ -1,7 +1,7 @@
 <?php
-require 'App.php';
+require_once 'App.php';
 
 $App = new App;
- $employees = $App->getEmployeeDetails();
+ $users = $App->getUsersDetails();
 
 ?>

@@ -1,8 +1,8 @@
 <?php
 header('Content-Type: application/json');
-require '../vendor/autoload.php';
-require '../config/config.php';
-require '../libs/App.php';
+require_once '../vendor/autoload.php';
+require_once '../config/config.php';
+require_once '../libs/App.php';
 
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Reader\Xlsx;
@@ -15,6 +15,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && !empty($_FILES)) {
     $fileTmpPath = $file['tmp_name'];
      $counter = trim($_POST['counter']);
      $allow_id = $_POST['allow_id'];
+     $add_remove = $_POST['add_remove'];
 
     if(ctype_digit($counter) || !empty($allow_id)  || ($allow_id != "")) {
 
@@ -58,9 +59,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && !empty($_FILES)) {
                         continue; // Skip if staff_id does not exist
                     }
                     // Update database with the allowance and deduction
+                    if($add_remove == 1) {
                     $query = "INSERT INTO allow_deduc (staff_id, allow_id, value,counter,inserted_by,date_insert) 
                             VALUES (:staff_id, :allow_id, :value,:counter,:inserted_by,now())
                           ON DUPLICATE KEY UPDATE value = :value, counter = :counter, inserted_by = :inserted_by, date_insert = now()";
+
                     $params = [
                         ':staff_id' => $staff_id,
                         ':allow_id' => $allow_id,
@@ -69,7 +72,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && !empty($_FILES)) {
                         ':inserted_by' => $inserted_by
 
                     ];
-
+                }else{
+                    $query = "Delete from allow_deduc WHERE allow_id = :allow_id AND staff_id = :staff_id";
+                        $params = [
+                            ':staff_id' => $staff_id,
+                            ':allow_id' => $allow_id
+                            ];
+                    }
                     $result = $App->executeNonSelect($query, $params);
                     if ($result) {
                         $processedRows++;

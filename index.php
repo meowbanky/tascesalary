@@ -1,23 +1,9 @@
-
-<?php include 'partials/main.php'; ?>
 <?php
-    $_SESSION['error'] = null;
-    if(isset($_POST['email'])){
-        $email = $_POST['email'];
-        if (strlen($email)==0) {
-            $_SESSION['error'] =  "Please enter a email";
-            $_POST['email'] = null;
-        }else{
-        if(checkAuth($email)===true){
-            header('Location: index.php');
-            die();
-        }else{
-            $_SESSION['error'] =  "Email is not valid";
-        }
-    }
-    }
+require_once 'libs/App.php';
+$App = new App();
+//$App->checkAuthentication();
 
-?>
+include 'partials/main.php'; ?>
 <head>
     <?php $title = "Login";
     include 'partials/title-meta.php'; ?>
@@ -47,7 +33,7 @@
                         <div class="mb-4">
                             <label class="block text-sm font-medium text-gray-600 dark:text-gray-200 mb-2" for="username">User</label>
                             <input id="username" name="username" class="form-input" type="text" value="" placeholder="Enter your username">
-                            <span class="text-danger"><?php echo $_SESSION['error'] ?></span>
+                            <span class="text-danger"></span>
                         </div>
 
                         <div class="mb-4">

@@ -1,2 +1,7 @@
 <!-- Sidenav Menu -->
-<?php include 'partials/sidenav.php'; ?>
+<?php
+
+require 'helpers.php';
+$baseUrl = getBaseUrl();
+
+include $baseUrl.'partials/sidenav.php'; ?>

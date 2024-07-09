@@ -1,12 +1,7 @@
 <?php
-include '../services/session.php';
-
-if(!isset($_SESSION['logged_in']) AND ($_SESSION['logged_in'] != 1)){
-    header('Location:../index.php');
-}
-require 'App.php';
-
-$App = new App;
+require_once '../libs/App.php';
+$App = new App();
+$App->checkAuthentication();
 
 $noOfDays = $App->getDaysOfMonth($_SESSION['activeperiodDescription']);
 
@@ -37,6 +32,7 @@ if(isset($_POST['search'])) {
 }
 
 $employeeDetails = $App->getEmployeeDetails($staff_id);
+$empNet = $App->getStaffNet($staff_id);
 
 $employeePayslip = $App->getEmployeeDetailsPayslip($staff_id,$_SESSION['currentactiveperiod']);
 

@@ -1,17 +1,14 @@
 <?php
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
-if(!isset($_SESSION['SESS_MEMBER_ID'])){
-    header('location:index.php');
-}
+require_once 'libs/App.php';
+$App = new App();
+$App->checkAuthentication();
 include 'partials/main.php';
 
 ?>
 
 <head>
     <?php
-    $title = "Upload";
+    $title = "Unauthorised Access";
     include 'partials/title-meta.php';
     ?>
     <?php include 'partials/head-css.php'; ?>

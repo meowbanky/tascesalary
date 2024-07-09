@@ -1,12 +1,12 @@
 <?php
-require '../vendor/autoload.php';
-require '../config/config.php';
-require '../libs/App.php';
-
+require_once '../vendor/autoload.php';
+require_once '../config/config.php';
+require_once '../libs/App.php';
+$App = new App();
+$App->checkAuthentication();
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
-$App = new App();
 $employees = $App->getEmployeeDetails(); // Assuming you have a method to get all employees
 
 $spreadsheet = new Spreadsheet();

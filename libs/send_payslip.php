@@ -5,17 +5,21 @@ use PHPMailer\PHPMailer\Exception;
 use Dompdf\Dompdf;
 use Dompdf\Options;
 
-require '../vendor/autoload.php';
-require '../config/config.php';
-require '../libs/App.php';
+require_once '../vendor/autoload.php';
+require_once '../config/config.php';
+require_once '../libs/App.php';
 $App = new App();
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $email = $_POST['email'];
     $staff_id = $_POST['staff_id'];
 
-    $paySlips = $App->getPaySlip($staff_id, $_SESSION['currentactiveperiod']);
-    $employeePayslip = $App->getEmployeeDetailsPayslip($staff_id, $_SESSION['currentactiveperiod']);
+    $businessData = $App->getBusinessName();
+    $businessName = $businessData['business_name'];
+
+    $period = $_POST['period'] ?? $_SESSION['currentactiveperiod'];
+    $paySlips = $App->getPaySlip($staff_id, $period);
+    $employeePayslip = $App->getEmployeeDetailsPayslip($staff_id, $period);
 
     // Debugging information
     if ($paySlips === false) {
@@ -34,10 +38,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     $dompdf = new Dompdf($options);
 
-    // Base64 encode the background image
+    // Base64 encode the background images
     $bgImagePath = realpath('../assets/images/tasce_background.png');
     $bgImageData = base64_encode(file_get_contents($bgImagePath));
     $bgImageSrc = 'data:image/png;base64,' . $bgImageData;
+
+    $bgImagePathR = realpath('../assets/images/ogun_logo.png');
+    $bgImageDataR = base64_encode(file_get_contents($bgImagePathR));
+    $bgImageSrcR = 'data:image/png;base64,' . $bgImageDataR;
+
+    $bgImagePathL = realpath('../assets/images/tasce_r_logo.png');
+    $bgImageDataL = base64_encode(file_get_contents($bgImagePathL));
+    $bgImageSrcL = 'data:image/png;base64,' . $bgImageDataL;
 
     // Load HTML content
     $html = "
@@ -69,18 +81,28 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     <body>
         <img src='$bgImageSrc' class='background-image' />
         <div class='header'>
-            <h2>" . $_SESSION['businessname'] . "</h2>  
-            <h3>PAYSLIP FOR THE MONTH OF " . $_SESSION['activeperiodDescription'] . "</h3>
+            <table style='width: 100%;'>
+                <tr>
+                    <td style='width: 20%;'><img src='$bgImageSrcR' style='width: 100px;' /></td>
+                    <td style='width: 60%; text-align: center;'>
+                        <h2>" .  $businessName . "</h2>  
+                        <h3>PAYSLIP FOR THE MONTH OF " . $_SESSION['activeperiodDescription'] . "</h3>
+                    </td>
+                    <td style='width: 20%; text-align: right;'><img src='$bgImageSrcL' style='width: 100px;' /></td>
+                </tr>
+            </table>
         </div>
         <div class='section'>
             <h2>Employee Details</h2>
             <table class='details'>
                 <tr><td>Name:</td><td>" . $employeePayslip['NAME'] . "</td></tr>
-                <tr><td>Staff No.:</td><td>" . $employeePayslip['staff_id'] . "</td></tr>
+                <tr><td>Stafff NO.:</td><td>" . $employeePayslip['OGNO'] . "</td></tr>
                 <tr><td>Dept:</td><td>" . $employeePayslip['dept'] . "</td></tr>
                 <tr><td>Bank:</td><td>" . $employeePayslip['BNAME'] . "</td></tr>
                 <tr><td>Acct No.:</td><td>" . $employeePayslip['ACCTNO'] . "</td></tr>
                 <tr><td>Grade/Step:</td><td>" . $employeePayslip['GRADE'] . "/" . $employeePayslip['STEP'] . "</td></tr>
+                <tr><td>Salary Structure:</td><td>" . $employeePayslip['SalaryType'] . "</td></tr>
+            
             </table>
         </div>";
 
@@ -149,7 +171,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $mail->Debugoutput = 'html'; // Output format (html for browser)
 
         //Recipients
-        $mail->setFrom('no-reply@tascesalary.com.ng', $_SESSION['businessname']);
+        $mail->setFrom('no-reply@tascesalary.com.ng',  $businessName);
         $mail->addAddress($email);
 
         // Attachments

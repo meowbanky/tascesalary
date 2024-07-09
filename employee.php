@@ -1,20 +1,17 @@
 <?php
-require 'libs/middleware.php';
-checkPermission('employee.php');
+require_once 'libs/App.php';
+$App = new App();
+$App->checkAuthentication();
 
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
-if(!isset($_SESSION['SESS_MEMBER_ID'])){
-    header('location:index.php');
-}
+require_once 'libs/middleware.php';
+checkPermission('employee.php');
 include 'partials/main.php';
 
 ?>
 
 <head>
     <?php
-    $title = "Earnings/Deductions";
+    $title = "Employee";
     include 'partials/title-meta.php';
     ?>
     <?php include 'partials/head-css.php'; ?>
@@ -68,11 +65,11 @@ include 'partials/main.php';
 <script>
     $(document).ready(function() {
 
-        $('#loadContent').load('view/view_Employees.php');
+        $('#loadContent').load('view/view_employees.php');
         $("#search").focus();
         $("#search").select();
         $("#search").autocomplete({
-            source: 'libs/searchStaff.php',
+            source: 'libs/searchstaff.php',
             type: 'POST',
             delay: 10,
             autoFocus: false,
@@ -81,7 +78,7 @@ include 'partials/main.php';
                 event.preventDefault();
                 $("#search").val(ui.item.value);
                 $('#searchform').ajaxSubmit({
-                    url: 'view/view_Employees.php', // URL for form submission
+                    url: 'view/view_employees.php', // URL for form submission
                     type: 'POST', // Method for form submission
                     success: function(response) {
                         $('#loadContent').html(response);

@@ -1,5 +1,5 @@
 <?php
-require 'App.php';
+require_once 'App.php';
 
 $App = new App;
 
@@ -7,7 +7,17 @@ $recordtime = date('Y-m-d H:i:s');
 $staff_id = $_POST['staff_id'];
 $daysToCal = $_POST['daysToCal'];
 $currentDays = $_POST['currentDays'];
-$step = $_POST['step'].'P';
+
+$step = $_POST['step'];
+
+// Check if 'P' is already present in the step
+if (strpos($step, 'P') === false) {
+    // If 'P' is not present, append 'P'
+    $step .= 'P';
+}
+
+
+
 
 if(intval($currentDays) < intval($daysToCal)){
     echo 'Error';
@@ -38,6 +48,7 @@ if(isset($_POST['finalise'])) {
         $App->deleteAllowance($staff_id, $allowance['allow_id']);
         $App->insertProratedAllow($staff_id, $allowance['allow_id'], $allowance['value']);
     }
+    $delete = $App->deleteProrate($staff_id);
     $message = $App->updateEmployeeProrate($staff_id, $step);
 
    if( $message ){

@@ -35,7 +35,7 @@
     <div class="relative">
         <button type="button" class="p-2">
             <span class="flex items-center justify-center h-6 w-6">
-                <img src="assets/images/flags/us.jpg" alt="user-image" class="h-4 w-6">
+                <img src="assets/images/flags/nig_flag.png" alt="user-image" class="h-4 w-6">
             </span>
         </button>
     </div>
@@ -174,20 +174,12 @@
             <img src="assets/images/users/user-6.jpg" alt="user-image" class="rounded-full h-10">
         </button>
         <div class="fc-dropdown fc-dropdown-open:opacity-100 hidden opacity-0 w-44 z-50 transition-[margin,opacity] duration-300 mt-2 bg-white shadow-lg border rounded-lg p-2 border-gray-200 dark:border-gray-700 dark:bg-gray-800">
-            <a class="flex items-center py-2 px-3 rounded-md text-sm text-gray-800 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-300" href="pages-gallery.php">
-                <i class="mgc_pic_2_line  me-2"></i> 
-                <span>Gallery</span>
-            </a>
-            <a class="flex items-center py-2 px-3 rounded-md text-sm text-gray-800 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-300" href="apps-kanban.php">
-                <i class="mgc_task_2_line  me-2"></i> 
-                <span>Kanban</span>
-            </a>
-            <a class="flex items-center py-2 px-3 rounded-md text-sm text-gray-800 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-300" href="auth-login.php">
+            <a class="flex items-center py-2 px-3 rounded-md text-sm text-gray-800 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-300" href="auth-lock-screen.php">
                 <i class="mgc_lock_line  me-2"></i> 
                 <span>Lock Screen</span>
             </a>
             <hr class="my-2 -mx-2 border-gray-200 dark:border-gray-700">
-            <a class="flex items-center py-2 px-3 rounded-md text-sm text-gray-800 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-300" href="auth-login.php">
+            <a class="flex items-center py-2 px-3 rounded-md text-sm text-gray-800 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-300" href="index.php">
                 <i class="mgc_exit_line  me-2"></i> 
                 <span>Log Out</span>
             </a>
@@ -205,8 +197,8 @@
                     <div class="pointer-events-none absolute top-3.5 start-4 text-gray-900 text-opacity-40 dark:text-gray-200">
                         <i class="mgc_search_line text-xl"></i>
                     </div>
-                    <form id="searchform" action="../view/view_Empearning.php" method="post">
-                    <input id="search" name="search" type="search" class="h-12 w-full border-0 bg-transparent ps-11 pe-4 text-gray-900 placeholder-gray-500 dark:placeholder-gray-300 dark:text-gray-200 focus:ring-0 sm:text-sm" placeholder="Search...">
+                    <form id="searchform" method="post">
+                    <input id="search" autofocus name="search" type="search" class="h-12 w-full border-0 bg-transparent ps-11 pe-4 text-gray-900 placeholder-gray-500 dark:placeholder-gray-300 dark:text-gray-200 focus:ring-0 sm:text-sm" placeholder="Search...">
                 </form>
                 </div>
             </div>

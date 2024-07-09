@@ -1,4 +1,4 @@
-var example1 = document.getElementById('example1'),
+var example1 = document.getElementById("employee"),
     example2Left = document.getElementById('example2-left'),
     example2Right = document.getElementById('example2-right'),
     example3Left = document.getElementById('example3-left'),
@@ -13,7 +13,7 @@ var example1 = document.getElementById('example1'),
     swapDemo = document.getElementById('swapDemo');
 
 // Example 1 - Simple list
-new Sortable(example1, {
+new Sortable(employee, {
     animation: 150,
     ghostClass: 'blue-background-class'
 });

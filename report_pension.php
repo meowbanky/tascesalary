@@ -1,20 +1,17 @@
 <?php
-require 'libs/middleware.php';
-checkPermission('employee.php');
+require_once 'libs/App.php';
+$App = new App();
+$App->checkAuthentication();
 
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
-if(!isset($_SESSION['SESS_MEMBER_ID'])){
-    header('location:index.php');
-}
+require_once 'libs/middleware.php';
+checkPermission('report_pension.php');
 include 'partials/main.php';
 
 ?>
 
 <head>
     <?php
-    $title = "Create user";
+    $title = "Pension Report";
     include 'partials/title-meta.php';
     ?>
     <?php include 'partials/head-css.php'; ?>
@@ -34,7 +31,7 @@ include 'partials/main.php';
         <main class="flex-grow p-6">
             <?php
             $subtitle = "Home";
-            $pagetitle = "Create user";
+            $pagetitle = "Pension Report";
             include 'partials/page-title.php';
             ?>
 
@@ -68,23 +65,20 @@ include 'partials/main.php';
 <script>
     $(document).ready(function() {
 
-        $('#loadContent').load('view/view_users.php');
+        $('#loadContent').load('view/view_report_pension.php');
         $("#search").focus();
         $("#search").select();
         $("#search").autocomplete({
-            source: 'libs/searchStaff.php',
+            source: 'libs/searchstaff.php',
             type: 'POST',
             delay: 10,
             autoFocus: false,
             minLength: 3,
             select: function (event, ui) {
                 event.preventDefault();
-                $("#staff_id").val(ui.item.value);
-                $('#employee_name').val(ui.item.label);
-                $('#email').val(ui.item.EMAIL);
-
+                $("#search").val(ui.item.value);
                 $('#searchform').ajaxSubmit({
-                    url: 'view/view_users.php', // URL for form submission
+                    url: 'view/view_employees.php', // URL for form submission
                     type: 'POST', // Method for form submission
                     success: function(response) {
                         $('#loadContent').html(response);

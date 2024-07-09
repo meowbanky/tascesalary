@@ -1,5 +1,9 @@
 <?php
-include '../libs/getEmpEarnings.php';
+require_once '../libs/App.php';
+$App = new App();
+$App->checkAuthentication();
+require_once '../libs/getempearnings.php';
+
 ?>
 <style>
     @media print {
@@ -32,11 +36,11 @@ include '../libs/getEmpEarnings.php';
 
 <!-- Employee Information -->
 <div class="mb-4">
-    <p><span class="font-bold text-red-600">Emp # <?php echo $employeeDetails['staff_id'] ?>:</span> <?php echo $employeeDetails['NAME'] ?></p>
+    <p><span class="font-bold text-red-600">Emp # <?php echo $employeeDetails['OGNO'] ?>:</span> <?php echo $employeeDetails['NAME'] ?></p>
     <p><span class="font-bold">Grade Level:</span> <?php echo $employeeDetails['GRADE'] ?>/<?php echo $employeeDetails['STEP'] ?></p>
     <p><span class="font-bold">Dept:</span> <?php echo $employeeDetails['dept'] ?></p>
     <p><span class="font-bold">Status:</span>  <?php echo $employeeDetails['STATUS'] ?></p>
-    <p><span class="font-bold">Salary Type:</span>  <?php echo $employeeDetails['SalaryType'] ?></p>
+    <p><span class="font-bold">Salary Structure:</span>  <?php echo $employeeDetails['SalaryType'] ?></p>
 </div>
 
 <!-- Earnings and Action Buttons Container -->
@@ -123,7 +127,8 @@ include '../libs/getEmpEarnings.php';
         <div class="md:col-span-1 space-y-4">
             <button class="bg-purple-500 text-white px-4 py-2 rounded-lg hover:bg-purple-600 focus:outline-none w-full" id="openModalButton">ADD EARNING/DEDUCTION</button>
             <button class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-red-600 focus:outline-none w-full" id="openModalProrate">PRO-RATE ALLOW</button>
-<!--            <button class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 focus:outline-none w-full" id="updategrade" >UPDATE GRADE/STEP</button>-->
+            <button class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 focus:outline-none w-full" id="updategrade" >UPDATE GRADE/STEP</button>
+            <button class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 focus:outline-none w-full" id="suspension" >SUSPENSION</button>
 <!--            <button class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 focus:outline-none w-full">ADD TEMP. DEDUCTION/ALLOWANCE</button>-->
 <!--            <button class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 focus:outline-none w-full">ADD LOAN/CORPORATE</button>-->
             <button id="emailButton" type="button" class="<?php if(!$payslipStatus){echo 'bg-gray-500'; }else{ echo 'bg-red-600';} ?> text-white px-4 py-2 rounded-lg hover:bg-black-600 focus:outline-none w-full" <?php if(!$payslipStatus){echo 'disabled="disabled"'; } ?>>Email</button>
@@ -149,6 +154,7 @@ include '../libs/getEmpEarnings.php';
                 <input type="hidden" id="grade" name="grade" value="<?php echo $employeeDetails['GRADE']?>">
                 <input type="hidden" id="step" name="step" value="<?php echo $employeeDetails['STEP']?>">
                 <input type="hidden" id="salaryType" name="salaryType" value="<?php echo $employeeDetails['SALARY_TYPE']?>">
+                <input type="hidden" name="net" id="net" value="<?php echo $empNet['net']; ?>">
                 <div class="grid grid-cols-1 sm:grid-cols-1 gap-1">
 
                     <!-- Right Column for Form Elements -->
@@ -249,6 +255,74 @@ include '../libs/getEmpEarnings.php';
     </div>
 </div>
 
+<!--Suspension Modal-->
+<div id="modal_suspension" class="closemodal fixed inset-0 flex items-center justify-center z-50 hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div class="fixed inset-0 bg-gray-500 bg-opacity-50 transition-opacity"></div>
+    <div class="scrollable-content bg-white rounded-lg shadow-lg overflow-y-scroll transform transition-all sm:w-full sm:max-w-lg max-h-screen flex flex-col">
+        <div class="bg-blue-600 px-4 py-3">
+            <h3 class="text-lg font-semibold text-white text-center" id="modal-title">SUSPEND ALLOWANCES FOR <br><?php echo $employeeDetails['NAME'] ?></h3>
+        </div>
+        <div class="bg-white px-4 pb-4 pt-5 sm:p-6 sm:pb-4 overflow-y-auto flex-1">
+            <div class="grid grid-cols-1 gap-4">
+                <!-- Hidden Fields -->
+                <input type="hidden" id="staff_id" name="staff_id" value="<?php echo $employeeDetails['staff_id']?>">
+                <input type="hidden" id="grade" name="grade" value="<?php echo $employeeDetails['GRADE']?>">
+                <input type="hidden" id="step" name="step" value="<?php echo $employeeDetails['STEP']?>">
+                <input type="hidden" id="salaryType" name="salaryType" value="<?php echo $employeeDetails['SALARY_TYPE']?>">
+
+                <!-- No of Days to Calculate -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Reduce Salary by:</label>
+                    <select id="suspension_factor" name="suspension_factor"  class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+                        <option value="">Select</option>
+                        <option value="0.5">Halve (1/2)</option>
+                        <option value="0.25">Quarter (1/4)</option>
+                    </select>
+                </div>
+                <!-- Allowance Table -->
+                <div class="px-1 py-1 text-left text-xs font-bold text-gray-500 uppercase tracking-wider">Allowance</div>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-3 py-1.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Code</th>
+                            <th class="px-3 py-1.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
+                            <th class="px-3 py-1.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                        </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                        <?php
+                        $gross = 0;
+                        if ($empAllowances) {
+                            foreach ($empAllowances as $empAllowance){
+                                ?>
+                                <tr>
+                                    <td class="px-3 py-2 whitespace-nowrap"><?php echo $empAllowance['allow_id'];?></td>
+                                    <td class="px-3 py-2 whitespace-nowrap"><?php echo $empAllowance['ed'];?></td>
+                                    <td class="px-3 py-2 whitespace-nowrap"><?php echo number_format($empAllowance['value']);?></td>
+                                </tr>
+                            <?php }
+                        }
+                        ?>
+                        </tbody>
+                    </table>
+                </div>
+                <!-- Calculated Value -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Calculated Value:</label>
+                    <div class="mt-1 p-2 border border-gray-300 rounded-md bg-gray-50">
+                        <div id="getsuspensionvalue"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="bg-gray-50 px-4 py-3 sm:flex sm:flex-row-reverse gap-2">
+            <button type="button" id="calsuspension" class="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:w-auto sm:text-sm">Calculate</button>
+            <button type="button" id="closeButton" class="w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:w-auto sm:text-sm closebutton">Close</button>
+        </div>
+    </div>
+</div>
+
 <!--Update Grade/Step-->
 <div id="modal_updategrade" class="closemodal fixed inset-0 flex items-center justify-center z-50 hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
     <div class="fixed inset-0 bg-gray-500 bg-opacity-50 transition-opacity"></div>
@@ -344,6 +418,7 @@ include '../libs/getEmpEarnings.php';
     </div>
 </div>
 <!-- Payslip Modal Structure -->
+<?php if($employeePayslip){ ?>
 <div id="payslipModal" class="closemodal fixed inset-0 flex items-center justify-center bg-gray-500 bg-opacity-50 hidden">
     <div class="modal-content rounded-lg overflow-hidden shadow-xl transform transition-all sm:max-w-sm md:max-w-md lg:max-w-lg xl:max-w-xl w-full flex flex-col bg-white">
 
@@ -360,9 +435,9 @@ include '../libs/getEmpEarnings.php';
             <div class="flex justify-between mb-2">
                 <span class="font-semibold">Name:</span> <span><?php echo $employeePayslip['NAME'] ?></span>
             </div>
-            <div class="flex justify-between mb-2">
-                <span class="font-semibold">Staff No.:</span> <span><?php echo $employeePayslip['staff_id'] ?></span>
-            </div>
+<!--            <div class="flex justify-between mb-2">-->
+<!--                <span class="font-semibold">Staff No.:</span> <span>--><?php //echo $employeePayslip['staff_id'] ?><!--</span>-->
+<!--            </div>-->
             <div class="flex justify-between mb-2">
                 <span class="font-semibold">Dept:</span> <span><?php echo $employeePayslip['dept'] ?></span>
             </div>
@@ -373,12 +448,19 @@ include '../libs/getEmpEarnings.php';
                 <span class="font-semibold">Acct No.:</span> <span><?php echo $employeePayslip['ACCTNO'] ?></span>
             </div>
             <div class="flex justify-between mb-2">
+                <span class="font-semibold">OG NO.:</span> <span><?php echo $employeePayslip['OGNO'] ?></span>
+            </div>
+            <div class="flex justify-between mb-2">
                 <span class="font-semibold">GRADE/STEP:</span> <span><?php echo $employeePayslip['GRADE'] ?>/<?php echo $employeePayslip['STEP'] ?></span>
+            </div>
+            <div class="flex justify-between mb-2">
+                <span class="font-semibold">SALARY STRUCURE:</span> <span><?php echo $employeePayslip['SalaryType']; ?></span>
             </div>
             <div class="mt-4">
                 <h3 class="text-lg font-semibold">Allowances</h3>
                 <?php $gross = 0;
                         $Totaldeductions = 0;
+                if($paySlips){
                         foreach($paySlips as $paySlip) {
                     if($paySlip['allow'] !=0){
                     ?>
@@ -388,12 +470,14 @@ include '../libs/getEmpEarnings.php';
                 <?php $gross = $gross +$paySlip['allow'];
                     }
                     }
+                }
                     ?>
                 <div class="flex justify-between mb-2 font-bold">
                     <span>Total Allowance:</span> <span><?php echo number_format($gross);?></span>
                 </div>
                 <h3 class="text-lg font-semibold">Deductions</h3>
                 <?php
+                if($paySlips){
                 foreach($paySlips as $paySlip) {
                     if($paySlip['deduc'] !=0){
                         ?>
@@ -402,6 +486,7 @@ include '../libs/getEmpEarnings.php';
                         </div>
                         <?php $Totaldeductions = $Totaldeductions +$paySlip['deduc'];
                     }
+                }
                 }
                 ?>
                 <div class="flex justify-between mb-2 font-bold border-t-2">
@@ -415,11 +500,12 @@ include '../libs/getEmpEarnings.php';
 
         <!-- Fixed Footer with Buttons -->
         <div class="bg-gray-50 px-4 py-3 flex flex-row-reverse gap-2">
-            <button id="printButton" class="px-4 py-2 bg-red-600 text-white rounded" onclick="window.print()">Print</button>
+            <button id="printButton" class="w-full px-4 py-2 bg-red-600 text-white rounded" onclick="window.print()">Print</button>
             <button id="closeButton" type="button" class="w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:w-auto sm:text-sm closebutton">Close</button>
         </div>
     </div>
 </div>
+<?php } ?>
     <script>
         $(document).ready(function() {
 
@@ -433,6 +519,7 @@ include '../libs/getEmpEarnings.php';
                 const payslipData = $('#payslipModal .modal-content').html();
                 const email = prompt("Please enter the employee's email address:");
                 if (email) {
+                    document.getElementById("backdrop").style.display = "flex";
                     $.ajax({
                         url: 'libs/send_payslip.php',
                         type: 'POST',
@@ -442,6 +529,7 @@ include '../libs/getEmpEarnings.php';
                         ,
                         success: function(response) {
                             alert('Payslip emailed successfully.');
+                            $('#backdrop').hide(); // Hide the backdrop and spinner
                         },
                         error: function(xhr, status, error) {
                             alert('Error sending email: ' + error);
@@ -465,7 +553,7 @@ include '../libs/getEmpEarnings.php';
                     if (result.isConfirmed) {
 
                         $.ajax({
-                            url: 'libs/deletePayslip.php',
+                            url: 'libs/deletepayslip.php',
                             method: 'POST',
                             dataType: 'json',
                             data: {
@@ -474,10 +562,10 @@ include '../libs/getEmpEarnings.php';
                             success: function(response) {
                                 if(response.status === 'success'){
                                     displayAlert(response.message, 'center', 'success');
-                                    $('#loadContent', window.parent.document).load('view/view_Empearning.php');
+                                    $('#loadContent', window.parent.document).load('view/view_empearning.php');
                                 }else{
                                     displayAlert(response.message, 'center', 'error');
-                                    $('#loadContent', window.parent.document).load('view/view_Empearning.php');
+                                    $('#loadContent', window.parent.document).load('view/view_empearning.php');
                                 }
                             },
                             error: function(jqXHR, textStatus, errorThrown) {
@@ -501,10 +589,35 @@ include '../libs/getEmpEarnings.php';
                     success: function(response) {
                         if(response === 'success'){
                             displayAlert('Upgraded successfully', 'center', 'success');
-                            $('#loadContent', window.parent.document).load('view/view_Empearning.php');
+                            $('#loadContent', window.parent.document).load('view/view_empearning.php');
                         }else{
                             displayAlert(response, 'center', 'error');
-                            $('#loadContent', window.parent.document).load('view/view_Empearning.php');
+                            $('#loadContent', window.parent.document).load('view/view_empearning.php');
+                        }
+                    },
+                    error: function(jqXHR, textStatus, errorThrown) {
+                        console.error('AJAX Error: ', textStatus, errorThrown);
+                    }
+                });
+            });
+
+
+            $('#suspension_factor').change(function(event) {
+                $.ajax({
+                    url: 'libs/getsuspension.php',
+                    method: 'POST',
+                    data: {
+                        suspension_factor: $(this).val(),
+                        staff_id: $('#staff_id').val(),
+                        step:$('#step').val(),
+                        calculate: 'yes',
+                    },
+                    success: function(response) {
+                        if(response !== 'No Record Found'){
+                            $('#getsuspensionvalue').html(response);
+                        }else{
+                            displayAlert(response, 'center', 'error');
+                            $('#getsuspensionvalue').html('');
                         }
                     },
                     error: function(jqXHR, textStatus, errorThrown) {
@@ -515,7 +628,7 @@ include '../libs/getEmpEarnings.php';
 
             $('#daysToCal').change(function(event) {
                 $.ajax({
-                    url: 'libs/getProrate.php',
+                    url: 'libs/getprorate.php',
                     method: 'POST',
                     data: {
                         daysToCal: $('#daysToCal').val(),
@@ -538,9 +651,36 @@ include '../libs/getEmpEarnings.php';
                 });
             });
 
+
+            $('#calsuspension').click(function(event) {
+                $.ajax({
+                    url: 'libs/getsuspension.php',
+                    method: 'POST',
+                    data: {
+                        suspension_factor: $('#suspension_factor').val(),
+                        staff_id: $('#staff_id').val(),
+                        step:$('#step').val(),
+                        finalise: 'yes',
+                    },
+                    success: function(response) {
+                        if(response === 'success'){
+                            displayAlert('Suspended-rate calculated successfully','center','success');
+                            $('#loadContent', window.parent.document).load('view/view_empearning.php');
+                        }else{
+                            displayAlert(response, 'center', 'error');
+                            $('#getsuspensionvalue').html('');
+                        }
+                    },
+                    error: function(jqXHR, textStatus, errorThrown) {
+                        console.error('AJAX Error: ', textStatus, errorThrown);
+                    }
+                });
+            });
+
+
             $('#calculateButton').click(function(event) {
                 $.ajax({
-                    url: 'libs/getProrate.php',
+                    url: 'libs/getprorate.php',
                     method: 'POST',
                     data: {
                         daysToCal: $('#daysToCal').val(),
@@ -552,7 +692,7 @@ include '../libs/getEmpEarnings.php';
                     success: function(response) {
                         if(response === 'success'){
                             displayAlert('Pro-rate calculated successfully','center','success');
-                            $('#loadContent', window.parent.document).load('view/view_Empearning.php');
+                            $('#loadContent', window.parent.document).load('view/view_empearning.php');
                         }else{
                             displayAlert(response, 'center', 'error');
                             $('#getProrateValue').html('');
@@ -567,7 +707,7 @@ include '../libs/getEmpEarnings.php';
 
             $('#allowDedSelect').change(function(event) {
                 $.ajax({
-                    url: 'libs/getSalary.php',
+                    url: 'libs/getsalary.php',
                     method: 'POST',
                     dataType: 'json',
                     data: {
@@ -603,6 +743,11 @@ include '../libs/getEmpEarnings.php';
             $('#updategrade').click(function(event) {
                 event.preventDefault();
                 $('#modal_updategrade').removeClass('hidden');
+            });
+            // Show the modal-update suspension
+            $('#suspension').click(function(event) {
+                event.preventDefault();
+                $('#modal_suspension').removeClass('hidden');
             });
 
 
@@ -644,7 +789,7 @@ include '../libs/getEmpEarnings.php';
                     if (result.isConfirmed) {
 
                         $.ajax({
-                            url: 'libs/runPayslipOne.php',
+                            url: 'libs/runpayslipone.php',
                             method: 'POST',
                             dataType: 'json',
                             data: {
@@ -653,10 +798,10 @@ include '../libs/getEmpEarnings.php';
                             success: function (response) {
                                 if (response.status === 'success') {
                                     displayAlert(response.message, 'center', 'success');
-                                    $('#loadContent', window.parent.document).load('view/view_Empearning.php');
+                                    $('#loadContent', window.parent.document).load('view/view_empearning.php');
                                 } else {
                                     displayAlert(response.message, 'center', 'error');
-                                    $('#loadContent', window.parent.document).load('view/view_Empearning.php');
+                                    $('#loadContent', window.parent.document).load('view/view_empearning.php');
 
                                 }
 
@@ -664,16 +809,18 @@ include '../libs/getEmpEarnings.php';
                             error: function (jqXHR, textStatus, errorThrown) {
                                 console.error('AJAX Error: ', textStatus, errorThrown);
                             }
-                        });
 
+                        })
                     }
+
                 })
             })
+
 
             // Handle deactivate button click
             $('#saveButton').click(function() {
                 $.ajax({
-                    url: 'libs/insertAllow.php',
+                    url: 'libs/insertallow.php',
                     method: 'POST',
                     dataType: 'json',
                     data: {
@@ -681,11 +828,12 @@ include '../libs/getEmpEarnings.php';
                         value: $('#amount').val(),
                         allow_id:$('#allowDedSelect').val(),
                         counter : $('#runtime').val(),
+                        net : $('#net').val(),
                     },
                     success: function(response) {
                         if (response.status === 'success') {
                             displayAlert(response.message,'center','success');
-                            $('#loadContent', window.parent.document).load('view/view_Empearning.php');
+                            $('#loadContent', window.parent.document).load('view/view_empearning.php');
                         } else {
                             displayAlert(response.message,'center','error');
                         }
@@ -730,7 +878,7 @@ include '../libs/getEmpEarnings.php';
                         var formData = $('#deletionsForm').find('input[name="delete[]"]:checked').serialize();
 
                         $.ajax({
-                            url: 'libs/getEmpearnings.php',
+                            url: 'libs/getempearnings.php',
                             type: 'POST',
                             data: formData,
                             success: function (response) {
@@ -739,7 +887,7 @@ include '../libs/getEmpEarnings.php';
                                     text: "Selected Items has been deleted.",
                                     icon: "success"
                                 });
-                                $('#loadContent', window.parent.document).load('view/view_Empearning.php');
+                                $('#loadContent', window.parent.document).load('view/view_empearning.php');
 
                                 // Optionally, you can refresh the page or update the DOM to reflect the changes
                             },

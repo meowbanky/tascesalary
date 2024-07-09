@@ -1,12 +1,10 @@
 <?php
-require 'libs/middleware.php';
+require_once 'libs/App.php';
+$App = new App();
+$App->checkAuthentication();
+
+require_once 'libs/middleware.php';
 checkPermission('empearnings.php');
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
-if(!isset($_SESSION['SESS_MEMBER_ID'])){
-    header('location:index.php');
-}
 include 'partials/main.php';
 
 ?>
@@ -55,6 +53,9 @@ include 'partials/main.php';
                     </div>
                 </div>
             </div>
+            <div class="backdrop" id="backdrop">
+                <div class="spinner"></div>
+            </div>
         </main>
 
         <?php include 'partials/footer.php'; ?>
@@ -67,11 +68,11 @@ include 'partials/main.php';
 <script>
     $(document).ready(function() {
 
-        $('#loadContent').load('view/view_Empearning.php');
+        $('#loadContent').load('view/view_empearning.php');
         $("#search").focus();
         $("#search").select();
         $("#search").autocomplete({
-            source: 'libs/searchStaff.php',
+            source: 'libs/searchstaff.php',
             type: 'POST',
             delay: 10,
             autoFocus: false,
@@ -80,7 +81,7 @@ include 'partials/main.php';
                 event.preventDefault();
                 $("#search").val(ui.item.value);
                 $('#searchform').ajaxSubmit({
-                    url: 'view/view_Empearning.php', // URL for form submission
+                    url: 'view/view_empearning.php', // URL for form submission
                     type: 'POST', // Method for form submission
                     success: function(response) {
                         $('#loadContent').html(response);

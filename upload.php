@@ -1,12 +1,10 @@
 <?php
-require 'libs/middleware.php';
-checkPermission('uploadq.php');
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
-if(!isset($_SESSION['SESS_MEMBER_ID'])){
-    header('location:index.php');
-}
+require_once 'libs/App.php';
+$App = new App();
+$App->checkAuthentication();
+require_once 'libs/middleware.php';
+checkPermission('upload.php');
+
 include 'partials/main.php';
 
 ?>
@@ -67,32 +65,9 @@ include 'partials/main.php';
 <script>
     $(document).ready(function() {
 
-        $('#loadContent').load('view/view_Upload.php');
+        $('#loadContent').load('view/view_upload.php');
         $("#search").focus();
-        $("#search").select();
-        $("#search").autocomplete({
-            source: 'libs/searchStaff.php',
-            type: 'POST',
-            delay: 10,
-            autoFocus: false,
-            minLength: 3,
-            select: function (event, ui) {
-                event.preventDefault();
-                $("#search").val(ui.item.value);
-                $('#searchform').ajaxSubmit({
-                    url: 'view/view_Employees.php', // URL for form submission
-                    type: 'POST', // Method for form submission
-                    success: function(response) {
-                        $('#loadContent').html(response);
-                    },
-                    error: function(xhr, status, error) {
-                        // Handle the error response here
-                        console.log(error);
-                    }
-                });
 
-            }
-        });
 
 
     })

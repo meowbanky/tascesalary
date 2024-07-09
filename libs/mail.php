@@ -2,9 +2,9 @@
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
-require '../vendor/autoload.php';
-require '../config/config.php';
-require '../libs/App.php';
+require_once '../vendor/autoload.php';
+require_once '../config/config.php';
+require_once '../libs/App.php';
 $APP = NEW App;
 
 
@@ -23,7 +23,7 @@ $APP = NEW App;
             $mail->Port = 587;
 
             // Enable SMTP debugging
-            $mail->SMTPDebug = 2; // Enable verbose debug output (0 = off, 1 = client messages, 2 = client and server messages)
+            $mail->SMTPDebug = 0; // Enable verbose debug output (0 = off, 1 = client messages, 2 = client and server messages)
             $mail->Debugoutput = 'html'; // Output format (html for browser)
 
             //Recipients

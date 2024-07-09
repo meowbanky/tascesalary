@@ -1,8 +1,9 @@
 <?php
-include 'App.php';
+require_once 'App.php';
+$App = new App();
+$App->checkAuthentication();
 
 $response = [];
-$App = new App;
 $array = [];
 
 $recordtime = date('Y-m-d H:i:s');

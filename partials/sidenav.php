@@ -53,35 +53,119 @@
                     <span class="menu-text"> Upload </span>
                 </a>
             </li>
-
             <li class="menu-item">
-                <a href="#" class="menu-link">
-                    <span class="menu-icon"><i class="mgc_task_2_line"></i></span>
-                    <span class="menu-text">Kanban</span>
+                <a href="runpayroll.php" class="menu-link">
+                    <span class="menu-icon"><i class="mgc_run_line"></i></span>
+                    <span class="menu-text"> Run Payroll </span>
                 </a>
             </li>
-
             <li class="menu-item">
                 <a href="javascript:void(0)" data-fc-type="collapse" class="menu-link">
-                    <span class="menu-icon"><i class="mgc_building_2_line"></i></span>
-                    <span class="menu-text"> Project </span>
+                    <span class="menu-icon"><i class="mgc_settings_4_line"></i></span>
+                    <span class="menu-text"> Settings </span>
                     <span class="menu-arrow"></span>
                 </a>
 
                 <ul class="sub-menu hidden">
                     <li class="menu-item">
-                        <a href="apps-project-list.php" class="menu-link">
-                            <span class="menu-text">List</span>
+                        <a href="exportfortax.php" class="menu-link">
+                            <span class="menu-text">💰Export for Tax</span>
                         </a>
                     </li>
                     <li class="menu-item">
-                        <a href="apps-project-detail.php" class="menu-link">
-                            <span class="menu-text">Detail</span>
+                        <a href="user.php" class="menu-link">
+                            <span class="menu-text"><i class="mgc_user_add_line"></i>Users</span>
                         </a>
                     </li>
                     <li class="menu-item">
-                        <a href="apps-project-create.php" class="menu-link">
-                            <span class="menu-text">Create</span>
+                        <a href="bank.php" class="menu-link">
+                            <span class="menu-text"><i class="mgc_bank_line"></i>Bank</span>
+                        </a>
+                    </li>
+                    <li class="menu-item">
+                        <a href="payperiods.php" class="menu-link">
+                            <span class="menu-text"><i class="mgc_calendar_add_line"></i>Pay-period</span>
+                        </a>
+                    </li>
+                    <li class="menu-item">
+                        <a href="dept.php" class="menu-link">
+                            <span class="menu-text"><i class="mgc_building_2_line"></i>Dept</span>
+                        </a>
+                    </li>
+                    <li class="menu-item">
+                        <a href="permissions.php" class="menu-link">
+                            <span class="menu-text"><i class="mgc_key_2_line"></i>Permissions</span>
+                        </a>
+                    </li>
+                    <li class="menu-item">
+                        <a href="salarytable.php" class="menu-link">
+                            <span class="menu-text"><i class="mgc_table_line"></i>Salary Table</span>
+                        </a>
+                    </li>
+                </ul>
+            </li>
+
+            <li class="menu-item">
+                <a href="javascript:void(0)" data-fc-type="collapse" class="menu-link">
+                    <span class="menu-icon"><i class="mgc_chart_line_line"></i></span>
+                    <span class="menu-text"> Report </span>
+                    <span class="menu-arrow"></span>
+                </a>
+
+                <ul class="sub-menu hidden">
+                    <li class="menu-item">
+                        <a href="report_payroll_summary.php" class="menu-link">
+                            <span class="menu-text">Gross Pay summary</span>
+                        </a>
+                    </li>
+                    <li class="menu-item">
+                        <a href="exportforgross.php" class="menu-link">
+                            <span class="menu-text">Gross Pay Export</span>
+                        </a>
+                    </li>
+                    <li class="menu-item">
+                        <a href="report_payslipone.php" class="menu-link">
+                            <span class="menu-text"><i class="mgc_paypal_line"></i>Payslip</span>
+                        </a>
+                    </li>
+                    <li class="menu-item">
+                        <a href="report_payrollbydept.php" class="menu-link">
+                            <span class="menu-text"><i class="mgc_bank_line"></i>Payroll by Dept</span>
+                        </a>
+                    </li>
+                    <li class="menu-item">
+                        <a href="report_banksummary.php" class="menu-link">
+                            <span class="menu-text"><i class="mgc_bank_line"></i>Bank Summary</span>
+                        </a>
+                    </li>
+                    <li class="menu-item">
+                        <a href="report_deductionlist.php" class="menu-link">
+                            <span class="menu-text"><i class="mgc_building_2_line"></i>All/Ded List</span>
+                        </a>
+                    </li>
+                    <li class="menu-item">
+                        <a href="report_grosspay.php" class="menu-link">
+                            <span class="menu-text"><i class="mgc_wallet_3_line"></i>Payroll Summary</span>
+                        </a>
+                    </li>
+                    <li class="menu-item">
+                        <a href="report_net2bank.php" class="menu-link">
+                            <span class="menu-text"><i class="mgc_bank_line"></i>Net Bank</span>
+                        </a>
+                    </li>
+                    <li class="menu-item">
+                        <a href="variance.php" class="menu-link">
+                            <span class="menu-text"><i class="mgc_git_compare_line"></i>Variance</span>
+                        </a>
+                    </li>
+                    <li class="menu-item">
+                        <a href="report_pension.php" class="menu-link">
+                            <span class="menu-text"><i class="mgc_home_4_line"></i>Pension</span>
+                        </a>
+                    </li>
+                    <li class="menu-item">
+                        <a href="log.php" class="menu-link">
+                            <span class="menu-text"><i class="mgc_list_check_2_line"></i>Audit Log</span>
                         </a>
                     </li>
                 </ul>

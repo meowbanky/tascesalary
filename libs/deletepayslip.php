@@ -1,10 +1,8 @@
 <?php
+require_once 'App.php';
+$App = new App();
+$App->checkAuthentication();
 
-require 'App.php';
-
-
-
-$App = new App;
 $response = [];
 $staff_id = $_POST['staff_id'];
 $recordtime = date('Y-m-d H:i:s');

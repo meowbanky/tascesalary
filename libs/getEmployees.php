@@ -1,12 +1,7 @@
 <?php
-include '../services/session.php';
-
-if(!isset($_SESSION['logged_in']) AND ($_SESSION['logged_in'] != 1)){
-    header('Location:../index.php');
-}
-require 'App.php';
-
-$App = new App;
+require_once 'App.php';
+$App = new App();
+$App->checkAuthentication();
 
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {

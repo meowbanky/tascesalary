@@ -2,9 +2,7 @@
 
 require '/Users/mac/Desktop/Project/64_folder/tasceSalary/config/config.php';
 
-
-
-//require '../config/config.php';
+//require_once '/home/tascesal/public_html/config/config.php';
 
 
 class App
@@ -52,7 +50,11 @@ class App
               VALUES (:staff_id, :allow_id, :value, :type, :inserted_by, :date_insert, 1)';
         $array = [':staff_id' => $staff_id, ':allow_id' => $allow_id,
             ':value' => $value, 'type'=>$type, 'inserted_by'=>$inserted_by, 'date_insert' => $date_insert];
+
+        $this->log('INSERT PRORATE','prorate_allow_deduc',$array,$_SESSION['SESS_MEMBER_ID']);
+
         return $this->executeNonSelect($query,$array);
+
     }
 
     public function deleteProrateAllowance($staff_id, $allow_id) {
@@ -116,6 +118,14 @@ class App
         return $this->executeNonSelect($query,$array);
     }
 
+    function deleteProrate($staff_id) {
+        $query = 'DELETE FROM prorate_allow_deduc WHERE staff_id = :staff_id';
+        $array = [
+            ':staff_id'=> $staff_id
+        ];
+        return $this->executeNonSelect($query,$array);
+    }
+
     function insertProratedAllow($staff_id, $allow_id,$value) {
         $query = 'INSERT INTO allow_deduc (staff_id,allow_id,value) VALUES (:staff_id,:allow_id,:value)';
         $array = [
@@ -123,13 +133,250 @@ class App
             ':staff_id'=> $staff_id,
             ':value'=> $value
         ];
+
+        $this->log('INSERT','allow_deduc',$array,$_SESSION['SESS_MEMBER_ID']);
+
         return $this->executeNonSelect($query,$array);
+
+    }
+    public function getPeriodDescription($period){
+        $sql = "SELECT concat(payperiods.description,'-', payperiods.periodYear) as period FROM payperiods 
+                WHERE periodid = :periodid";
+        $param = [':periodid' => $period];
+        return $this->selectOne($sql,$param);
+    }
+
+    public function getBankSummary($period,$bankid=-1){
+
+        $sql = "SELECT
+	ANY_VALUE(tbl_master.staff_id) AS staff_id, 
+	sum(tbl_master.allow) AS allow, 
+	(sum( tbl_master.allow ) - sum( tbl_master.deduc ) ) AS net, 
+	sum(tbl_master.deduc) AS deduc, 
+	any_value ( master_staff.`NAME` ) AS `NAME`, 
+	ANY_value ( tbl_dept.dept ) AS dept, 
+	any_value ( master_staff.ACCTNO ) AS acctno, 
+	any_value ( master_staff.GRADE ) AS grade, 
+	any_value ( master_staff.STEP ) AS step, 
+	any_value ( master_staff.OGNO ) AS OGNO, 
+	any_value ( tbl_bank.BNAME ) AS bankname, 
+	any_value ( tbl_bank.BCODE ) AS bankcode, 
+	COUNT(DISTINCT (tbl_master.staff_id)) AS staff_count, 
+	ANY_VALUE(tbl_salaryType.SalaryType) AS SalaryType
+FROM
+	tbl_master
+	LEFT JOIN
+	master_staff
+	ON 
+		tbl_master.staff_id = master_staff.staff_id
+	LEFT JOIN
+	tbl_dept
+	ON 
+		master_staff.DEPTCD = tbl_dept.dept_id
+	INNER JOIN
+	tbl_bank
+	ON 
+		master_staff.BCODE = tbl_bank.bank_ID
+	LEFT JOIN
+	tbl_salaryType
+	ON 
+		master_staff.SALARY_TYPE = tbl_salaryType.salaryType_id";
+        if($bankid == -1){
+            $sql.=" where tbl_master.period  = :period GROUP BY master_staff.staff_id,tbl_bank.BCODE ORDER BY tbl_bank.BCODE";
+            $param = [':period' => $period];
+        }else{
+            $sql.=" where tbl_master.period  = :period AND master_staff.BCODE = :bank_ID
+             GROUP BY master_staff.staff_id";
+            $param = [':period' => $period,
+                ':bank_ID' => $bankid];
+        }
+        return $this->selectAll($sql,$param);
+    }
+    public function getPfa($period,$pfacode=-1){
+
+        $sql = "SELECT
+	sum(tbl_master.deduc) as deduc, 
+	ANY_VALUE(tbl_earning_deduction.ed) AS ed, 
+	ANY_VALUE(tbl_master.staff_id) as staff_id, 
+	ANY_VALUE(master_staff.PFAACCTNO) AS PFAACCTNO, 
+	ANY_VALUE(tbl_pfa.PFANAME) AS PFANAME, 
+	ANY_VALUE(master_staff.`NAME`) AS NAME
+FROM
+	tbl_master
+	INNER JOIN
+	tbl_earning_deduction
+	ON 
+		tbl_master.allow_id = tbl_earning_deduction.ed_id
+	INNER JOIN
+	master_staff
+	ON 
+		tbl_master.staff_id = master_staff.staff_id
+	INNER JOIN
+	tbl_pfa
+	ON 
+		master_staff.PFACODE = tbl_pfa.PFACODE";
+        if($pfacode == -1){
+            $sql.=" where tbl_master.period  = :period AND tbl_master.allow_id= 25 GROUP BY master_staff.PFACODE ORDER BY tbl_pfa.PFACODE";
+            $param = [':period' => $period];
+        }else{
+            $sql.=" where tbl_master.period  = :period AND tbl_master.allow_id= 25 AND master_staff.PFACODE = :pfacode
+             GROUP BY master_staff.staff_id";
+            $param = [':period' => $period,
+                ':pfacode' => $pfacode];
+        }
+        return $this->selectAll($sql,$param);
+    }
+    public function getBankSummaryGroupBy($period,$grouby='master_staff.BCODE',$deptcd = null){
+        $param = [':period' => $period];
+
+        $sql = "SELECT
+	ANY_VALUE(tbl_master.staff_id) AS staff_id, 
+	sum(tbl_master.allow) AS allow, 
+	(sum( tbl_master.allow ) - sum( tbl_master.deduc ) ) AS net, 
+	sum(tbl_master.deduc) AS deduc, 
+	any_value ( master_staff.`NAME` ) AS `NAME`, 
+	ANY_value ( tbl_dept.dept ) AS dept, 
+	any_value ( master_staff.ACCTNO ) AS acctno, 
+	any_value ( master_staff.GRADE ) AS grade, 
+	any_value ( master_staff.STEP ) AS step, 
+	any_value ( tbl_bank.BNAME ) AS BNAME, 
+	any_value ( tbl_bank.BCODE ) AS bankcode, 
+	COUNT(DISTINCT (tbl_master.staff_id)) AS staff_count, 
+	ANY_VALUE(tbl_salaryType.SalaryType) AS SalaryType
+FROM
+	tbl_master
+	LEFT JOIN
+	master_staff
+	ON 
+		tbl_master.staff_id = master_staff.staff_id
+	LEFT JOIN
+	tbl_dept
+	ON 
+		master_staff.DEPTCD = tbl_dept.dept_id
+	INNER JOIN
+	tbl_bank
+	ON 
+		master_staff.BCODE = tbl_bank.bank_ID
+	LEFT JOIN
+	tbl_salaryType
+	ON 
+		master_staff.SALARY_TYPE = tbl_salaryType.salaryType_id
+    WHERE tbl_master.period  = :period ";
+        if($deptcd != NULL){
+        $sql .= " AND master_staff.DEPTCD  = :DEPTCD ";
+            $sql .=" GROUP BY master_staff.staff_id";
+            $additionalParam = [':DEPTCD' => $deptcd];
+            $param = array_merge($param, $additionalParam);
+        }else{
+            $sql .=" GROUP BY {$grouby}";
+        }
+
+
+        return $this->selectAll($sql,$param);
+    }
+
+    public function getGrossPay($period){
+        $sql = "SELECT tbl_bank.BNAME, COUNT(DISTINCT tbl_master.staff_id) AS staff_count, (SUM(tbl_master.allow) - SUM(tbl_master.deduc)) AS net
+                FROM tbl_master INNER JOIN master_staff ON tbl_master.staff_id = master_staff.staff_id INNER JOIN tbl_bank 
+                    ON master_staff.BCODE = tbl_bank.bank_ID WHERE tbl_master.period = :period GROUP BY master_staff.BCODE";
+        $param = [':period' => $period];
+        return $this->selectAll($sql,$param);
+    }
+
+    public  function getallowType($allow_id) {
+        $sql = "SELECT edType FROM tbl_earning_deduction WHERE ed_id = :ed_id";
+        $param = [':ed_id' => $allow_id];
+        return $this->selectOne($sql,$param);
+    }
+
+    public function getStaffNet($staff_id) {
+        $sql = "SELECT
+            (SELECT SUM(`value`)
+             FROM allow_deduc 
+             INNER JOIN tbl_earning_deduction ON allow_deduc.allow_id = tbl_earning_deduction.ed_id
+             WHERE allow_deduc.staff_id = :staff_id1 AND tbl_earning_deduction.type = 1) -
+        
+            (SELECT SUM(`value`)
+             FROM allow_deduc 
+             INNER JOIN tbl_earning_deduction ON allow_deduc.allow_id = tbl_earning_deduction.ed_id
+             WHERE allow_deduc.staff_id = :staff_id2 AND tbl_earning_deduction.type = 2)  as net";
+   $param = [':staff_id1' => $staff_id,
+            ':staff_id2' =>$staff_id];
+        return $this->selectOne($sql,$param);
+    }
+
+    public function getAutoAllowance(){
+        $sql = "SELECT * FROM tbl_autoallowance";
+        return $this->selectAll($sql,[]);
+    }
+
+    public function getSalaryTable($salarytype,$allowcode,$grade){
+        $sql = "SELECT
+	allowancetable.allowcode, allow_id,
+	allowancetable.grade, 
+	allowancetable.step, 
+	allowancetable.`value`, 
+	allowancetable.SALARY_TYPE, 
+	tbl_earning_deduction.ed
+FROM
+	allowancetable
+	INNER JOIN
+	tbl_earning_deduction
+	ON 
+		allowancetable.allowcode = tbl_earning_deduction.ed_id
+            WHERE SALARY_TYPE = :SALARY_TYPE AND allowcode = :allowcode AND grade = :grade";
+        $param = [':SALARY_TYPE' => $salarytype,
+        ':allowcode'=>$allowcode,
+            ':grade'=>$grade];
+        return $this->selectAll($sql,$param);
+    }
+    public function getReportSummary($period, $columnName)
+    {
+        // Define allowed column names to prevent SQL injection
+        $allowedColumns = ['allow', 'deduc'];
+
+        // Check if the provided column name is allowed
+        if (!in_array($columnName, $allowedColumns)) {
+            throw new InvalidArgumentException('Invalid column name provided.');
+        }
+
+        // Initialize the query and parameters
+        $query = "SELECT SUM($columnName) AS value, tbl_earning_deduction.edDesc
+              FROM tbl_master
+              INNER JOIN tbl_earning_deduction ON tbl_master.allow_id = tbl_earning_deduction.ed_id
+              WHERE $columnName <> 0 AND period = :period
+              GROUP BY tbl_master.allow_id";
+        $params = [':period' => $period];
+
+        return $this->selectAll($query, $params);
+    }
+
+    public function getReportDeductionList($period, $type,$allow_id)
+    {
+        // Define allowed column names to prevent SQL injection
+        if($type == 1){
+            $columnName = 'allow';
+        }else{
+            $columnName = 'deduc';
+        }
+
+        // Initialize the query and parameters
+        $query = "SELECT $columnName AS value, tbl_master.staff_id,NAME,tbl_earning_deduction.edDesc
+              FROM tbl_master
+              INNER JOIN tbl_earning_deduction ON tbl_master.allow_id = tbl_earning_deduction.ed_id
+              INNER JOIN employee ON tbl_master.staff_id = employee.staff_id
+              WHERE $columnName <> 0 AND period = :period AND allow_id = :allow_id";
+        $params = [':period' => $period,
+                    ':allow_id' => $allow_id];
+
+        return $this->selectAll($query, $params);
     }
 
     public function getEmployeeDetails($staff_id = null)
     {
         // Initialize the query and parameters
         $query = 'SELECT
+    ifnull(employee.SALARY_TYPE,0) AS SALARY_TYPE,
 	employee.staff_id, 
 	`NAME`, 
 	DEPTCD, 
@@ -189,6 +436,260 @@ FROM
         }
     }
 
+    public function getActiveEmployees()
+    {
+        // Initialize the query and parameters
+        $query = 'SELECT
+	employee.staff_id, 
+	`NAME`, 
+	DEPTCD, 
+	employee.EMAIL, 
+	employee.OGNO, 
+	employee.TIN, 
+	employee.`NAME`, 
+	employee.GENDER, 
+	employee.EMPDATE, 
+	employee.DOB, 
+	employee.DEPTCD, 
+	employee.POST, 
+	employee.GRADE, 
+	employee.STEP, 
+	employee.PFACODE, 
+	employee.PFAACCTNO, 
+	employee.SALARY_TYPE, 
+	employee.ACCTNO, 
+	employee.BANK_ID, 
+	dept, 
+	employee.STATUSCD, 
+	staff_status.`STATUS`, 
+	tbl_salaryType.SalaryType, 
+	tbl_bank.BNAME, 
+	tbl_pfa.PFANAME
+FROM
+	employee
+	LEFT JOIN
+	tbl_dept
+	ON 
+		employee.DEPTCD = tbl_dept.dept_id
+	LEFT JOIN
+	staff_status
+	ON 
+		employee.STATUSCD = staff_status.STATUSCD
+	LEFT JOIN
+	tbl_salaryType
+	ON 
+		employee.SALARY_TYPE = tbl_salaryType.salaryType_id
+	LEFT JOIN
+	tbl_bank
+	ON 
+		employee.BANK_ID = tbl_bank.bank_ID
+	LEFT JOIN
+	tbl_pfa
+	ON 
+		employee.PFACODE = tbl_pfa.PFACODE WHERE employee.STATUSCD = :STATUSCD';
+
+        $params = [];
+
+            $params = ['STATUSCD' => 'A'];
+            return $this->selectAll($query, $params);
+
+    }
+public function create_user($staff_id, $username, $password, $role_id, $deleted=0 )
+{
+
+    $query = "INSERT INTO username (staff_id, username, password, role_id,deleted) 
+              VALUES (?, ?, ?, ?,?)
+              ON DUPLICATE KEY UPDATE 
+              username = VALUES(username),
+              password = VALUES(password),
+              role_id = VALUES(role_id),
+              deleted = VALUES(deleted)";
+    $params = [$staff_id, $username, $password, $role_id,$deleted];
+     $result = $this->executeNonSelect($query, $params);
+
+    $this->log('INSERT','USERNAME',$params,$_SESSION['SESS_MEMBER_ID']);
+
+    return $result;
+
+}
+
+    public function create_bank($bankcode, $bankname)
+    {
+        $query = "INSERT INTO tbl_bank (bcode, bname) 
+              VALUES (?, ?)
+              ON DUPLICATE KEY UPDATE 
+              bcode = VALUES(bcode), 
+              bname = VALUES(bname)";
+        $params = [$bankcode, $bankname];
+        $result = $this->executeNonSelect($query, $params);
+
+        $this->log('INSERT','tbl_bank',$params,$_SESSION['SESS_MEMBER_ID']);
+        return $result;
+
+    }
+
+    public function create_dept($dept, $dept_auto=null)
+    {
+        if ($dept_auto==null){
+            $query = "INSERT INTO tbl_dept (dept) 
+              VALUES (:dept)";
+            $params = [':dept' => $dept];
+        }else{
+        $query = "UPDATE tbl_dept SET dept = :dept WHERE dept_auto = :dept_auto";
+
+        $params = [':dept'=> $dept, ':dept_auto'=>$dept_auto];
+        }
+
+        $result = $this->executeNonSelect($query, $params);
+
+        $this->log('INSERT','tbl_dept',$params,$_SESSION['SESS_MEMBER_ID']);
+
+        return $result;
+          }
+
+ public function generateStrongPassword($length = 6) {
+        $characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%^&*()';
+        $charactersLength = strlen($characters);
+        $randomPassword = '';
+
+        for ($i = 0; $i < $length; $i++) {
+            $randomPassword .= $characters[rand(0, $charactersLength - 1)];
+        }
+
+        return $randomPassword;
+    }
+
+    public function getUsersDetails($staff_id = null)
+    {
+        // Initialize the query and parameters
+        $query = 'SELECT
+            username.staff_id,roles.role_id,
+            employee.`NAME`,
+            username.deleted,
+            roles.role_name,EMAIL 
+            FROM
+            username
+            LEFT JOIN roles ON username.role_id = roles.role_id
+            LEFT JOIN employee ON username.staff_id = employee.staff_id ';
+
+        $params = [];
+
+        if ($staff_id !== null) {
+            $query .= ' WHERE staff_id = :staff_id';
+            $params = [':staff_id' => $staff_id];
+            return $this->selectOne($query, $params);
+        } else {
+            return $this->selectAll($query, $params);
+        }
+    }
+
+    public function getUsersPermission()
+    {
+        // Initialize the query and parameters
+        $query = "SELECT
+	permissions.permission_id, 
+	permissions.role_id, 
+	permissions.page, 
+	roles.role_name
+FROM
+	permissions
+	INNER JOIN
+	roles
+	ON 
+	permissions.role_id = roles.role_id";
+
+        return $this->selectAll($query, []);
+
+    }
+
+    public function getPages()
+    {
+        // Initialize the query and parameters
+        $query = "SELECT url, `name` FROM pages";
+
+        return $this->selectAll($query, []);
+
+    }
+
+
+    public function getBanksDetails($bank_ID = null)
+    {
+        // Initialize the query and parameters
+        $query = 'SELECT
+                    tbl_bank.bank_ID, 
+                    tbl_bank.BCODE, 
+                    tbl_bank.BNAME
+                    FROM
+                    tbl_bank';
+        $params = [];
+        if ($bank_ID !== null) {
+            $query .= ' WHERE bank_ID = :bank_ID';
+            $params = [':bank_ID' => $bank_ID];
+            return $this->selectOne($query, $params);
+        } else {
+            return $this->selectAll($query, $params);
+        }
+    }
+
+    public function getDeptDetails($deptid = null)
+    {
+        // Initialize the query and parameters
+        $query = 'SELECT
+	        tbl_dept.dept, 
+	        tbl_dept.dept_auto
+            FROM tbl_dept';
+        $params = [];
+        if ($deptid !== null) {
+            $query .= ' WHERE dept_auto = :dept_auto';
+            $params = [':dept_auto' => $deptid];
+            return $this->selectOne($query, $params);
+        } else {
+            return $this->selectAll($query, $params);
+        }
+    }
+public function insertPeriod($description,$periodYear){
+    $querycheck = "SELECT * FROM payperiods WHERE description = :description AND periodYear = :periodYear";
+	$params = [
+        ':description' => $description,
+        ':periodYear' => $periodYear
+    ];
+    $check = $this->selectAll($querycheck,$params);
+    if($check){
+        return false;
+    }else{
+        $query = "INSERT INTO payperiods (description, periodYear, active, payrollRun) VALUES (:description, :periodYear, 1, 0)";
+
+        $this->log("INSERT","payperiods",$params,$_SESSION['SESS_MEMBER_ID']);
+
+
+        return $this->executeNonSelect($query,$params);
+          }
+}
+    public function getPayPeriod()
+    {
+
+        $query = "SELECT periodId, concat(description,'-',periodYear) AS description
+                    FROM payperiods ORDER BY periodId DESC";
+            return $this->selectAll($query, []);
+
+    }
+
+    public function log($operation, $table, $data, $userId) {
+        $query = "INSERT INTO operation_logs (operation, table_name, data, user_id) VALUES (:operation, :table_name, :data, :user_id)";
+        $stmt = $this->link->prepare($query);
+
+        $operationVar = $operation;
+        $tableVar = $table;
+        $dataVar = json_encode($data);
+        $userIdVar = $userId;
+
+        $stmt->bindParam(':operation', $operationVar);
+        $stmt->bindParam(':table_name', $tableVar);
+        $stmt->bindParam(':data', $dataVar);
+        $stmt->bindParam(':user_id', $userIdVar);
+
+        $stmt->execute();
+    }
 
     public function getEmployeeDetailsPayslip($staff_id,$period)
     {
@@ -197,15 +698,17 @@ FROM
             ':period' => $period
         ];
 
-        $query = 'SELECT
+        $query = "SELECT
 	master_staff.staff_id, 
 	master_staff.`NAME`, 
+	master_staff.OGNO, 
 	tbl_dept.dept, 
 	tbl_bank.BNAME, 
 	master_staff.ACCTNO, 
 	master_staff.GRADE, 
-	master_staff.STEP
-    FROM
+	master_staff.STEP, 
+	IFNULL(tbl_salaryType.SalaryType,'') AS SalaryType
+FROM
 	master_staff
 	LEFT JOIN
 	tbl_dept
@@ -215,7 +718,11 @@ FROM
 	tbl_bank
 	ON 
 		master_staff.BCODE = tbl_bank.BANK_ID
-        WHERE staff_id = :staff_id and period =:period';
+	LEFT JOIN
+	tbl_salaryType
+	ON 
+		master_staff.SALARY_TYPE = tbl_salaryType.salaryType_id
+        WHERE staff_id = :staff_id and period =:period";
 
 
         return $this->selectOne($query, $array);
@@ -232,6 +739,18 @@ FROM
             ':editTime' => $editTime,
             ':userID' => $userID
         ];
+
+        $log = [
+            ':staff_id' => $staff_id,
+            ':allow_id' => $allow_id,
+            ':value' => $value,
+            ':type' => $type,
+            ':period' => $period,
+            ':editTime' => $editTime,
+            ':userID' => $userID
+        ];
+
+        $this->log('INSERT', 'tbl_master',$log, $_SESSION['SESS_MEMBER_ID']);
 
         return $this->executeNonSelect($query, $params);
     }
@@ -250,8 +769,11 @@ FROM
             ':userID' => $userID
         ];
 
+        $this->log('INSERT', 'tbl_master',$params, $_SESSION['SESS_MEMBER_ID']);
+
         return $this->executeNonSelect($query, $params);
-    }
+
+          }
 
     public function completedEarnings($staff_id,$allow_id,$period,$value,$type){
         $query = 'INSERT INTO completedLoan (staff_id,allow_id,period,value,type)VALUES (:staff_id,:allow_id,:period,:value,:type)';
@@ -271,7 +793,7 @@ FROM
         ];
     $query =    "SELECT
 	tbl_earning_deduction.ed,
-	allow_deduc.`value`,
+	IFNULL(allow_deduc.`value`,0) AS value,
 	allow_deduc.allow_id,allow_deduc.temp_id,
 	tbl_earning_deduction.edType,
 	allow_deduc.staff_id,allow_deduc.running_counter,allow_deduc.counter 
@@ -283,6 +805,51 @@ FROM
       return  $this->selectAll($query, $earning_array);
 
     }
+
+    public function getGender(){
+        $query = "SELECT
+	employee.GENDER AS labels, 
+	count(employee.staff_id) as series
+FROM
+	employee
+	WHERE STATUSCD = 'A' and ISNULL(GENDER)=FALSE
+	GROUP BY GENDER";
+        return $this->selectAll($query,[]);
+    }
+
+    public function getDept(){
+        $query = "SELECT
+	tbl_dept.dept as labels, 
+	count(employee.staff_id) as series
+FROM
+	employee
+	INNER JOIN
+	tbl_dept
+	ON 
+		employee.DEPTCD = tbl_dept.dept_id
+		WHERE
+	STATUSCD = 'A' AND
+	ISNULL(DEPTCD) = FALSE
+GROUP BY
+	employee.DEPTCD";
+        return $this->selectAll($query,[]);
+    }
+
+    public function getFinance(){
+        $query = "SELECT
+	sum(tbl_master.allow) as total_allowance, 
+	sum(tbl_master.deduc) as total_deduction, 
+	concat(payperiods.description, '-',payperiods.periodYear)  as month
+    FROM
+	tbl_master
+	INNER JOIN
+	payperiods
+	ON 
+		tbl_master.period = payperiods.periodId
+		GROUP BY tbl_master.period";
+        return $this->selectAll($query,[]);
+    }
+
 
     public function getPaySlip($staff_id,$period) {
         $array = [
@@ -302,11 +869,65 @@ FROM
         return  $this->selectAll($query, $array);
 
     }
-
-    public function insertStaffMaster($staff_id, $name, $deptcd, $bcode, $acctno, $grade, $step, $period, $pfacode, $pfaacctno) {
-        $query = "INSERT INTO master_staff (staff_id, NAME, DEPTCD, BCODE, ACCTNO, GRADE, STEP, period, PFACODE, PFAACCTNO) 
-              VALUES (:staff_id, :NAME, :DEPTCD, :BCODE, :ACCTNO, :GRADE, :STEP, :period, :PFACODE, :PFAACCTNO)";
+    public function getStaffList($batchSize, $offset) {
+        $query = "SELECT email, staff_id FROM employee WHERE email IS NOT NULL AND STATUSCD = 'A' LIMIT :batchSize OFFSET :offset";
         $params = [
+            ':batchSize' => (int) $batchSize,
+            ':offset' => (int) $offset,
+        ];
+        return $this->selectAll($query, $params);
+    }
+
+    public function lastActivePeriod() {
+        $query = "SELECT max(periodid) as period FROM payperiods WHERE payrollrun = 1 AND active = 0 LIMIT 1";
+        return $this->selectOne($query, []);
+    }
+
+    public function getOffset() {
+        $query = "SELECT last_offset FROM email_offset ORDER BY id DESC LIMIT 1";
+        return $this->selectOne($query, []);
+    }
+    public function updatePayPeriodFlag($period){
+        $sql = "UPDATE payperiods SET payrollRun = :payrollRun WHERE periodId = :periodId";
+        $params = [':payrollRun' => 1,
+                    ':periodId' => $period
+        ];
+        return $this->executeNonSelect($sql,$params);
+
+    }
+
+    public function checkAuthentication() {
+        if (!isset($_SESSION['SESS_MEMBER_ID'])) {
+            header('Location: index.php');
+            exit;
+        }
+    }
+    public function getBusinessName() {
+        $query = "SELECT
+                    tbl_business.business_name,
+                    tbl_business.town,
+                    tbl_business.state,
+                    tbl_business.tel 
+                FROM
+                    tbl_business";
+        return $this->selectOne($query, []);
+    }
+    public function updateOffset($newOffset) {
+        $query = "UPDATE email_offset SET last_offset = :newOffset ORDER BY id DESC LIMIT 1";
+        $params = [':newOffset' => (int) $newOffset];
+        $this->executeNonSelect($query, $params);
+    }
+    public function initializeOffset() {
+        $query = "INSERT INTO email_offset (last_offset) VALUES (0)";
+        $this->executeNonSelect($query, []);
+    }
+
+    public function insertStaffMaster($SALARY_TYPE,$OGNO,$staff_id, $name, $deptcd, $bcode, $acctno, $grade, $step, $period, $pfacode, $pfaacctno) {
+
+        $query = "INSERT INTO master_staff (SALARY_TYPE,OGNO,staff_id, NAME, DEPTCD, BCODE, ACCTNO, GRADE, STEP, period, PFACODE, PFAACCTNO) 
+              VALUES (:SALARY_TYPE,:OGNO,:staff_id, :NAME, :DEPTCD, :BCODE, :ACCTNO, :GRADE, :STEP, :period, :PFACODE, :PFAACCTNO)";
+        $params = [
+            ':SALARY_TYPE' => $SALARY_TYPE,
             ':staff_id' => $staff_id,
             ':NAME' => $name,
             ':DEPTCD' => $deptcd,
@@ -316,11 +937,14 @@ FROM
             ':STEP' => $step,
             ':period' => $period,
             ':PFACODE' => $pfacode,
-            ':PFAACCTNO' => $pfaacctno
+            ':PFAACCTNO' => $pfaacctno,
+            ':OGNO'=>$OGNO
         ];
 
+        $this->log('INSERT', 'master_staff',$params, $_SESSION['SESS_MEMBER_ID']);
+
         return $this->executeNonSelect($query, $params);
-    }
+       }
 
 
     public function updateAllowances($value,$user_id,$staff_id,$allow_id,$counter=0,$running_counter=0)
@@ -335,7 +959,9 @@ FROM
             ':allow_id' => $allow_id,
             'running_counter' => $running_counter,
         ];
+        $this->log('UPDATE','allow_deduc',$params,$_SESSION['SESS_MEMBER_ID']);
         return $this->executeNonSelect($query, $params);
+
     }
     public function insertAllowances($value,$user_id,$staff_id,$allow_id,$counter=0,$running_counter=0){
         $params = [
@@ -348,7 +974,10 @@ FROM
         ];
         $query = 'INSERT INTO allow_deduc(staff_id,allow_id,value,counter,inserted_by,date_insert,running_counter)
                                             VALUES (:staff_id,:allow_id,:value,:counter,:inserted_by,NOW(),:running_counter)';
+        $this->log('INSERT','allow_deduc',$params,$_SESSION['SESS_MEMBER_ID']);
         return $this->executeNonSelect($query, $params);
+
+
     }
 
 
@@ -404,6 +1033,12 @@ FROM
         $DaysToCal = intval($DaysToCal);
         $no_days = intval($no_days);
         return ($DaysToCal * $value) / $no_days;
+    }
+
+    public function calculateSuspendedValue($value, $suspensionfactor) {
+        $value = intval($value);
+        $suspensionfactor = floatval($suspensionfactor);
+        return ($value*$suspensionfactor);
     }
 
     public function getDaysOfMonth($date){
@@ -472,16 +1107,19 @@ public function updateGradeStep($grade,$step,$staff_id)
     ];
     return $this->executeNonSelect($query,$array);
 }
-    public function getSalaryValue($grade,$step,$salaryType,$allow_id){
-        $array = [':grade' => $grade,
+    public function getSalaryValue($grade, $step, $salaryType, $allow_id) {
+        // Array for binding parameters
+        $array = [
+            ':grade' => $grade,
             ':step' => $step,
             ':salaryType' => $salaryType,
             ':allow_id' => $allow_id
-            ];
-     return  $this->selectOne("SELECT allowancetable.`value` FROM allowancetable WHERE
-	                grade = :grade AND step = :step AND SALARY_TYPE = :salaryType AND allowcode = :allow_id",$array);
+        ];
+            return $this->selectOne("SELECT allowancetable.value FROM allowancetable WHERE
+                    grade = :grade AND step = :step AND SALARY_TYPE = :salaryType AND allowcode = :allow_id", $array);
 
     }
+
 
     public function selectAll($query,$array=[]){
         $rows = $this->link->prepare($query);

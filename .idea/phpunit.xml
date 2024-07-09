@@ -11,10 +11,10 @@
         <option value="$PROJECT_DIR$/report/office_vendor/maennchen/zipstream-php/test" />
         <option value="$PROJECT_DIR$/original/mail/mailer/PHPMailer/tests" />
         <option value="$PROJECT_DIR$/original/report/office_vendor/markbaker/complex/tests" />
-        <option value="$PROJECT_DIR$/original/report/office_vendor/myclabs/php-enum/tests" />
-        <option value="$PROJECT_DIR$/original/report/office_vendor/phpoffice/phpspreadsheet/tests" />
         <option value="$PROJECT_DIR$/original/report/office_vendor/maennchen/zipstream-php/tests" />
         <option value="$PROJECT_DIR$/original/report/office_vendor/markbaker/matrix/tests" />
+        <option value="$PROJECT_DIR$/original/report/office_vendor/myclabs/php-enum/tests" />
+        <option value="$PROJECT_DIR$/original/report/office_vendor/phpoffice/phpspreadsheet/tests" />
       </list>
     </option>
   </component>

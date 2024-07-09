@@ -1,6 +1,6 @@
 <?php
 
-include '../libs/getEmployees.php';
+include '../libs/getemployees.php';
 ?>
 
 <div class="bg-white p-6 rounded-lg shadow-md">
@@ -59,7 +59,7 @@ include '../libs/getEmployees.php';
                                     <button type='submit' class='text-yellow-500 hover:text-yellow-700 mx-1'><i class='fas fa-exchange-alt'></i></button>
                          
                                 </form>
-                                    <a href='add_earnings.php?staff_id={$employee['staff_id']}' class='text-green-500 hover:text-green-700 mx-1'><i class='fas fa-dollar-sign'></i></a>
+                                    <a href='empearnings.php?staff_id={$employee['staff_id']}' class='text-green-500 hover:text-green-700 mx-1'><i class='fas fa-dollar-sign'></i></a>
                                 </div>
                                 </td>
                         </tr>";
@@ -219,7 +219,7 @@ include '../libs/getEmployees.php';
                         if(response == 'Employee added successfully.') {
                             $('#addModal').addClass('hidden');
                             displayAlert(response,'center', 'success');
-                            $('#loadContent', window.parent.document).load('view/view_Employees.php');
+                            $('#loadContent', window.parent.document).load('view/view_employees.php');
                         }else{
                             displayAlert(response,'center', 'error');
                         }
@@ -288,7 +288,7 @@ include '../libs/getEmployees.php';
 
             $('#reload-button').on('click', function(event) {
                 event.preventDefault();
-                $('#loadContent', window.parent.document).load('view/view_Employees.php');
+                $('#loadContent', window.parent.document).load('view/view_employees.php');
             })
 
 
@@ -338,10 +338,10 @@ include '../libs/getEmployees.php';
                             success: function(response) {
                                 if(response.status === 'success'){
                                     displayAlert(response.message, 'center', 'success');
-                                    $('#loadContent', window.parent.document).load('view/view_Empearning.php');
+                                    $('#loadContent', window.parent.document).load('view/view_empearning.php');
                                 }else{
                                     displayAlert(response.message, 'center', 'error');
-                                    $('#loadContent', window.parent.document).load('view/view_Empearning.php');
+                                    $('#loadContent', window.parent.document).load('view/view_empearning.php');
                                 }
                             },
                             error: function(jqXHR, textStatus, errorThrown) {

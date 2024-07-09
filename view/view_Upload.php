@@ -1,38 +1,11 @@
 <?php
-require '../libs/App.php';
-
-$App = new App;
+require_once '../libs/App.php';
+$App = new App();
+$App->checkAuthentication();
 
 $selectDrops = $App->selectDrop();
-
 ?>
-<style>
-    /* Spinner and backdrop styles */
-    .backdrop {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background-color: rgba(0, 0, 0, 0.5);
-        display: none;
-        justify-content: center;
-        align-items: center;
-        z-index: 9999;
-    }
-    .spinner {
-        border: 16px solid #f3f3f3;
-        border-top: 16px solid #3498db;
-        border-radius: 50%;
-        width: 120px;
-        height: 120px;
-        animation: spin 2s linear infinite;
-    }
-    @keyframes spin {
-        0% { transform: rotate(0deg); }
-        100% { transform: rotate(360deg); }
-    }
-</style>
+
 <div class="w-full max-w-md p-4">
     <div class="bg-white p-8 rounded-lg shadow-md">
         <h1 class="text-2xl font-bold mb-6 text-center">Upload Allowances/Deductions</h1>
@@ -48,19 +21,26 @@ $selectDrops = $App->selectDrop();
             <label for="allowDedSelect" class="block text-sm font-medium text-gray-700 mt-2">Allow/Ded</label>
             <select id="allow_id" name="allow_id" class="employee-select w-full mt-1 block rounded-md border-gray-300">
                 <option value="">Select Item</option>
-                <?php
-                foreach ($selectDrops as $selectDrop) {
-                    echo '<option value="' . $selectDrop['ed_id'] . '">' . $selectDrop['ed'] . '</option>';
-                }
-                ?>
+                <?php foreach ($selectDrops as $selectDrop) : ?>
+                    <option value="<?= $selectDrop['ed_id'] ?>"><?= $selectDrop['ed'] ?></option>
+                <?php endforeach; ?>
             </select>
         </div>
         <div class="mb-4">
             <label for="counter" class="block text-sm font-medium text-gray-700">Counter</label>
-            <input type="number" value = '0' id="counter" name="counter" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
+            <input type="number" value="0" id="counter" name="counter" class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm">
         </div>
+        <div class="mb-4">
+            <label for="add_remove" class="block text-sm font-medium text-gray-700">Add/Remove</label>
+            <select id="add_remove" name="add_remove" class="employee-select w-full mt-1 block rounded-md border-gray-300">
+                <option value="1">Add Item</option>
+                <option value="-1">Remove Item</option>
+            </select></div>
         <div class="text-center mt-4">
             <button type="button" id="send-files" class="btn bg-violet-500 border-violet-500 text-white">Send Files</button>
+
+            <!-- Download Template Button -->
+            <a href="template.xlsx" class="btn bg-blue-600 border-blue-600 text-white ml-4" download>Download Template</a>
         </div>
     </div>
 </div>
@@ -81,15 +61,17 @@ $selectDrops = $App->selectDrop();
                     document.getElementById("backdrop").style.display = "flex";
                     dz.processQueue();
                 } else {
-                   displayAlert('No file uploaded','center','error');
+                    displayAlert('No file uploaded','center','error');
                 }
             });
 
             dz.on("sending", function(file, xhr, formData) {
                 var counter = $('#counter').val();
                 var allow_id = $('#allow_id').val();
+                var add_remove = $('#add_remove').val();
                 formData.append("counter", counter);
                 formData.append("allow_id", allow_id);
+                formData.append("add_remove", add_remove);
             });
 
             dz.on("complete", function(file) {
@@ -114,4 +96,3 @@ $selectDrops = $App->selectDrop();
     });
 
 </script>
-

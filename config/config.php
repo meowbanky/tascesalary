@@ -4,7 +4,7 @@ if (!defined('HOST')) {
     define('HOST', 'localhost');
 }
 if (!defined('DBNAME')) {
-    define('DBNAME', 'emmaggic_tasce');
+    define('DBNAME', 'tascesal_salary');
 }
 if (!defined('USER')) {
     define('USER', 'oouthsal_root');
@@ -22,5 +22,8 @@ if (!defined('USERNAME')) {
 if (!defined('PASSWORD')) {
     define('PASSWORD', 'Masanwo@7980');
 }
+// config.php
+//define('BASE_URL', 'http://localhost:8000/tascesalary/');
+
 
 ?>
