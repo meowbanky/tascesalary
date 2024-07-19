@@ -26,7 +26,7 @@ A comprehensive Payroll Management System for managing employee salaries, allowa
 1. **Clone the repository:**
    
    ```sh
-   git clone https://github.com/yourusername/payroll-management-system.git
+   git clone https://github.com/meowbanky/tasce.git
    cd payroll-management-system
 2. **CInstall dependencies using Composer:**
 
