@@ -55,7 +55,7 @@ try {
 	master_staff.OGNO, 
 	master_staff.ACCTNO, 
 	master_staff.GRADE, 
-	master_staff.STEP, 
+	master_staff.STEP,employee.TIN,
 	tbl_dept.dept,tbl_salaryType.SalaryType
 FROM
 	master_staff
@@ -146,6 +146,7 @@ FROM
                 'bank' => $employee['BNAME'],
                 'accountno' => $employee['ACCTNO'],
                 'salarytype' => $employee['SalaryType'],
+                'tin' => $employee['TIN'],
             ],
             'payrollInfo' => [
                 'periodId' => $periodId,

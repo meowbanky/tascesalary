@@ -1,23 +1,26 @@
 module.exports = {
-  mode: 'jit',
+  mode: "jit",
   content: [
-      '/*.php',
-    './libs/*.php',  // Scan all PHP files in the libs directory
-    './partials/*.php',  // Scan all PHP files in the partials directory
-    './view/*.php',  // Scan all PHP files in the view directory
+    "./*.php",
+    "./libs/*.php",
+    "./partials/*.php",
+    "./view/*.php",
+    "./auth_api/**/*.php",
+    "./payroll-portal___/**/*.{html,js,tsx,jsx}",
+    "./assets/js/*.js",
   ],
   theme: {
     extend: {
       spacing: {
-        '24': '6rem',  // Adding 6rem (96px) as a custom spacing value
+        24: "6rem",
       },
       width: {
-        '24': '6rem',  // Adding 6rem (96px) as a custom width value
+        24: "6rem",
       },
       height: {
-        '24': '6rem',  // Adding 6rem (96px) as a custom height value
+        24: "6rem",
       },
     },
   },
   plugins: [],
-}
+};

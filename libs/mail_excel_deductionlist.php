@@ -75,20 +75,26 @@ if ($_SERVER['REQUEST_METHOD'] == 'GET') {
         $mail = new PHPMailer(true);
         try {
             // Server settings
+//            $mail->isSMTP();
+//            $mail->Host = HOST_MAIL; // Set the SMTP server to send through
+//            $mail->SMTPAuth = true;
+//            $mail->Username = USERNAME; // SMTP username
+//            $mail->Password = PASSWORD; // SMTP password
+//            $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+//            $mail->Port = 587;
+
+
+            $mail->SMTPDebug = SMTPDEBUG;
             $mail->isSMTP();
-            $mail->Host = HOST_MAIL; // Set the SMTP server to send through
-            $mail->SMTPAuth = true;
-            $mail->Username = USERNAME; // SMTP username
-            $mail->Password = PASSWORD; // SMTP password
+            $mail->Host       = HOST_MAIL;
+            $mail->SMTPAuth   = true;
+            $mail->Username   = USERNAME;
+            $mail->Password   = PASSWORD;
             $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-            $mail->Port = 587;
-
-            // Enable SMTP debugging
-            $mail->SMTPDebug = 0; // Enable verbose debug output (0 = off, 1 = client messages, 2 = client and server messages)
-            $mail->Debugoutput = 'html'; // Output format
-
+            $mail->Port       = PORT;
+            
             // Recipients
-            $mail->setFrom('no-reply@tascesalary.com.ng',  $businessName);
+            $mail->setFrom(USERNAME,  $businessName);
             $mail->addAddress($email); // Add more recipients if needed
             // $mail->addAddress('recipient2@example.com');
 

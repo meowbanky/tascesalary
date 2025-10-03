@@ -107,6 +107,11 @@
                             <span class="menu-text"><i class="mgc_table_line"></i>Salary Table</span>
                         </a>
                     </li>
+                    <li class="menu-item">
+                        <a href="call_backup.php" class="menu-link">
+                            <span class="menu-text"><i class="mgc_database_line"></i>Database Backup</span>
+                        </a>
+                    </li>
                 </ul>
             </li>
 

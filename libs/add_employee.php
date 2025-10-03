@@ -1,10 +1,17 @@
 <?php
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
+
+require '../vendor/autoload.php';
+require_once '../config/config.php';
 require_once 'App.php';
+
 $App = new App();
 $App->checkAuthentication();
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    if(!isset($_POST['staff_id'])){
+
+    if (!isset($_POST['staff_id'])) {
         $staff_id = -1;
     } else {
         $staff_id = $_POST['staff_id'];
@@ -13,6 +20,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $OGNO = trim($_POST['ogno']);
     $EMAIL = trim($_POST['email']);
     $NAME = trim($_POST['name']);
+    $TIN = trim($_POST['tin']);
     $GENDER = trim($_POST['gender']);
     $EMPDATE = trim($_POST['empdate']);
     $DOB = trim($_POST['dob']);
@@ -38,6 +46,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if (empty($NAME)) {
         $errors[] = 'Name is required';
     }
+    if (empty($TIN)) {
+        $errors[] = 'TIN is required';
+    }
     if (empty($GENDER)) {
         $errors[] = 'Gender is required';
     }
@@ -45,23 +56,21 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $errors[] = 'Employment Type is required';
     }
     if (empty($EMPDATE) || !validateDate($EMPDATE)) {
-//        $errors[] = 'Valid employment date is required';
         $EMPDATE = date('Y-m-d H:i:s');
     }
     if (empty($DOB) || !validateDate($DOB)) {
-//        $errors[] = 'Valid date of birth is required';
         $DOB = date('Y-m-d H:i:s');
     }
     if (empty($DEPTCD)) {
         $errors[] = 'Department code is required';
     }
-    if (empty($GRADE)|| !ctype_digit($GRADE)) {
+    if (empty($GRADE) || !ctype_digit($GRADE)) {
         $errors[] = 'Grade is required and must be a number';
     }
     if (empty($STEP) || !ctype_digit($STEP)) {
         $errors[] = 'Step is required and must be digits';
     }
-    if($BANK_ID != 47) {
+    if ($BANK_ID != 47) {
         if (empty($ACCTNO) || !ctype_digit($ACCTNO) || strlen($ACCTNO) != 10) {
             $errors[] = 'Account number is required and must be a 10-digit number';
         }
@@ -88,6 +97,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     OGNO = :OGNO,
                     EMAIL = :EMAIL,
                     NAME = :NAME,
+                    TIN = :TIN,
                     GENDER = :GENDER,
                     EMPDATE = :EMPDATE,
                     DOB = :DOB,
@@ -107,53 +117,57 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $arraystaff = [':staff_id' => $staff_id];
         } else {
             // Save the new employee to the database
-            $query = "INSERT INTO employee (employment_type,OGNO, EMAIL, `NAME`, GENDER, EMPDATE, DOB, DEPTCD, GRADE, STEP, ACCTNO, BANK_ID, PFACODE, PFAACCTNO, SALARY_TYPE, STATUSCD, userID, editTime) VALUES (
-        :employment_type,
-        :OGNO, 
-        :EMAIL, 
-        :NAME, 
-        :GENDER, 
-        :EMPDATE, 
-        :DOB, 
-        :DEPTCD, 
-        :GRADE, 
-        :STEP, 
-        :ACCTNO, 
-        :BANK_ID, 
-        :PFACODE, 
-        :PFAACCTNO, 
-        :SALARY_TYPE, 
-        :STATUS, :user, NOW())";
+            $query = "INSERT INTO employee (employment_type, OGNO, EMAIL, `NAME`, TIN, GENDER, EMPDATE, DOB, DEPTCD, GRADE, STEP, ACCTNO, BANK_ID, PFACODE, PFAACCTNO, SALARY_TYPE, STATUSCD, userID, editTime) VALUES (
+                :employment_type,
+                :OGNO, 
+                :EMAIL, 
+                :NAME, 
+                :TIN,
+                :GENDER, 
+                :EMPDATE, 
+                :DOB, 
+                :DEPTCD, 
+                :GRADE, 
+                :STEP, 
+                :ACCTNO, 
+                :BANK_ID, 
+                :PFACODE, 
+                :PFAACCTNO, 
+                :SALARY_TYPE, 
+                :STATUS, 
+                :user, 
+                NOW()
+            )";
         }
         $params = [
             ':employment_type' => $employment_type,
-            ':OGNO'=> $OGNO,
-            ':EMAIL'=> $EMAIL,
-            ':NAME'=> $NAME,
-            ':GENDER'=> $GENDER,
-            ':EMPDATE'=> $EMPDATE,
-            ':DOB'=> $DOB,
-            ':DEPTCD'=> $DEPTCD,
-            ':GRADE'=> $GRADE,
-            ':STEP'=> $STEP,
-            ':ACCTNO'=> $ACCTNO,
-            ':BANK_ID'=> $BANK_ID,
-            ':PFACODE'=> $PFACODE,
-            ':PFAACCTNO'=> $PFAACCTNO,
-            ':SALARY_TYPE'=> $SALARY_TYPE,
-            ':STATUS'=> $STATUS,
-            'user'=>$_SESSION['SESS_MEMBER_ID']
+            ':OGNO' => $OGNO,
+            ':EMAIL' => $EMAIL,
+            ':NAME' => $NAME,
+            ':TIN' => $TIN,
+            ':GENDER' => $GENDER,
+            ':EMPDATE' => $EMPDATE,
+            ':DOB' => $DOB,
+            ':DEPTCD' => $DEPTCD,
+            ':GRADE' => $GRADE,
+            ':STEP' => $STEP,
+            ':ACCTNO' => $ACCTNO,
+            ':BANK_ID' => $BANK_ID,
+            ':PFACODE' => $PFACODE,
+            ':PFAACCTNO' => $PFAACCTNO,
+            ':SALARY_TYPE' => $SALARY_TYPE,
+            ':STATUS' => $STATUS,
+            ':user' => $_SESSION['SESS_MEMBER_ID']
         ];
-        if(!empty($arraystaff)){
-            $params = array_merge($params,$arraystaff);
+        if (!empty($arraystaff)) {
+            $params = array_merge($params, $arraystaff);
         }
 
         $result = $App->executeNonSelect($query, $params);
 
-
         if (!$existingEmployee) {
-            $staff_id = $App->link->lastInsertId(); // Get the last inserted ID
-            $App->log('INSERT','employee',$params,$_SESSION['SESS_MEMBER_ID']);
+            $staff_id = $App->link->lastInsertId();
+            $App->log('INSERT', 'employee', $params, $_SESSION['SESS_MEMBER_ID']);
 
             $autoAllows = $App->getAutoAllowance();
 
@@ -171,7 +185,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             ':inserted_by' => $_SESSION['SESS_MEMBER_ID']
                         ];
 
-                        // Check if the record already exists
                         $checkQuery = "SELECT COUNT(*) as count FROM allow_deduc WHERE staff_id = :staff_id AND allow_id = :allow_id";
                         $checkParams = [
                             ':staff_id' => $staff_id,
@@ -181,27 +194,80 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         $result = $App->selectOne($checkQuery, $checkParams);
 
                         if ($result && $result['count'] > 0) {
-                            // Update existing record
                             $success = $App->updateAllowances($value, $_SESSION['SESS_MEMBER_ID'], $staff_id, $autoAllow['allow_id'], 0);
-                        $App->log('UPDATE allow/deduction','allow_dedction',$checkParams,$_SESSION['SESS_MEMBER_ID']);
+                            $App->log('UPDATE allow/deduction', 'allow_dedction', $checkParams, $_SESSION['SESS_MEMBER_ID']);
                         } else {
-
-                            // Insert new record
                             $success = $App->insertAllowances($value, $_SESSION['SESS_MEMBER_ID'], $staff_id, $autoAllow['allow_id'], 0);
-                            $App->log('INSERT allow/deduction','allow_dedction',$checkParams,$_SESSION['SESS_MEMBER_ID']);
+                            $App->log('INSERT allow/deduction', 'allow_dedction', $checkParams, $_SESSION['SESS_MEMBER_ID']);
                         }
                     }
                 }
             }
+        }else{
+            echo 'Employee added successfully.';
         }
 
         if ($result) {
-            echo 'Employee added successfully.';
+            $checkUserQuery = "SELECT COUNT(*) as count FROM tbl_users WHERE staff_id = :staff_id";
+            $checkUserParams = [':staff_id' => $staff_id];
+            $userCheck = $App->selectOne($checkUserQuery, $checkUserParams);
+
+            if ($userCheck && $userCheck['count'] == 0) {
+                $defaultPassword = 'password@123';
+                $hashedPassword = password_hash($defaultPassword, PASSWORD_BCRYPT);
+
+                $insertUserQuery = "INSERT INTO tbl_users (staff_id, password_hash, plain_password) VALUES (:staff_id, :hashedPassword, :defaultPassword)";
+                $insertUserParams = [
+                    ':staff_id' => $staff_id,
+                    ':hashedPassword' => $hashedPassword,
+                    ':defaultPassword' => $defaultPassword
+                ];
+
+                $inserted = $App->executeNonSelect($insertUserQuery, $insertUserParams);
+                if ($inserted) {
+                    $App->log('INSERT USERNAME', 'username', $insertUserParams, $_SESSION['SESS_MEMBER_ID']);
+
+                    if (!empty($EMAIL)) {
+
+                        $mail = new PHPMailer(true);
+                        try {
+                            $mail->SMTPDebug = SMTPDEBUG;
+                            $mail->isSMTP();
+                            $mail->Host = HOST_MAIL;
+                            $mail->SMTPAuth = true;
+                            $mail->Username = USERNAME;
+                            $mail->Password = PASSWORD;
+                            $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+                            $mail->Port = PORT;
+
+                            $mail->setFrom(USERNAME, SENDERNAME. ' Payroll');
+                            $mail->addAddress($EMAIL, $NAME);
+
+                            $mail->isHTML(true);
+                            $mail->Subject = 'Your Account Login Details';
+                            $mail->Body = "
+                            <p>Dear $NAME,</p>
+                            <p>Your employee portal login has been created.</p>
+                            <p><strong>Username:</strong> $staff_id<br>
+                            <strong>Password:</strong> $defaultPassword</p>
+                            <p>Please log in and change your password as soon as possible.</p>
+                            <p>Thank you.</p>";
+                            $mail->AltBody = "Dear $NAME,\n\nYour employee portal login has been created.\n\nUsername: $staff_id\nPassword: $defaultPassword\n\nPlease log in and change your password.\n\nThank you.";
+
+                            $mail->send();
+                        } catch (Exception $e) {
+                            echo '<p>Email could not be sent. Mailer Error: ' . $mail->ErrorInfo . '</p>';
+                        }
+                    }
+                } else {
+                    echo '<p>Failed to create username for staff.</p>';
+                }
+                echo 'Employee added successfully.';
+            }
         } else {
             echo 'Error adding employee.';
         }
     } else {
-        // Display validation errors
         foreach ($errors as $error) {
             echo "<p>$error</p>";
         }
@@ -210,7 +276,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     echo 'Invalid request.';
 }
 
-// Function to validate date
 function validateDate($date, $format = 'Y-m-d') {
     $d = DateTime::createFromFormat($format, $date);
     return $d && $d->format($format) === $date;

@@ -158,21 +158,21 @@ class App
     public function getBankSummary($period,$bankid=-1){
 
         $sql = "SELECT
-    ANY_VALUE(master_staff.STATUSCD) AS STATUSCD,
-	ANY_VALUE(tbl_master.staff_id) AS staff_id, 
+    MIN(master_staff.STATUSCD) AS STATUSCD,
+	MIN(tbl_master.staff_id) AS staff_id, 
 	sum(tbl_master.allow) AS allow, 
 	(sum( tbl_master.allow ) - sum( tbl_master.deduc ) ) AS net, 
 	sum(tbl_master.deduc) AS deduc, 
-	any_value ( master_staff.`NAME` ) AS `NAME`, 
-	ANY_value ( tbl_dept.dept ) AS dept, 
-	any_value ( master_staff.ACCTNO ) AS acctno, 
-	any_value ( master_staff.GRADE ) AS grade, 
-	any_value ( master_staff.STEP ) AS step, 
-	any_value ( master_staff.OGNO ) AS OGNO, 
-	any_value ( tbl_bank.BNAME ) AS bankname, 
-	any_value ( tbl_bank.BCODE ) AS bankcode, 
+	MIN( master_staff.`NAME` ) AS `NAME`, 
+	MIN( tbl_dept.dept ) AS dept, 
+	MIN( master_staff.ACCTNO ) AS acctno, 
+	MIN( master_staff.GRADE ) AS grade, 
+	MIN( master_staff.STEP ) AS step, 
+	MIN( master_staff.OGNO ) AS OGNO, 
+	MIN( tbl_bank.BNAME ) AS bankname, 
+	MIN( tbl_bank.BCODE ) AS bankcode, 
 	COUNT(DISTINCT (tbl_master.staff_id)) AS staff_count, 
-	ANY_VALUE(tbl_salaryType.SalaryType) AS SalaryType
+	MIN(tbl_salaryType.SalaryType) AS SalaryType
 FROM
 	tbl_master
 	LEFT JOIN
@@ -208,12 +208,12 @@ FROM
 
         $sql = "SELECT
 	sum(tbl_master.deduc) as deduc, 
-	ANY_VALUE(tbl_earning_deduction.ed) AS ed, 
-	ANY_VALUE(tbl_master.staff_id) as staff_id, 
-	ANY_VALUE(master_staff.PFAACCTNO) AS PFAACCTNO, 
-	ANY_VALUE(master_staff.OGNO) AS OGNO, 
-	ANY_VALUE(tbl_pfa.PFANAME) AS PFANAME, 
-	ANY_VALUE(master_staff.`NAME`) AS NAME
+	MIN(tbl_earning_deduction.ed) AS ed, 
+	MIN(tbl_master.staff_id) as staff_id, 
+	MIN(master_staff.PFAACCTNO) AS PFAACCTNO, 
+	MIN(master_staff.OGNO) AS OGNO, 
+	MIN(tbl_pfa.PFANAME) AS PFANAME, 
+	MIN(master_staff.`NAME`) AS NAME
 FROM
 	tbl_master
 	INNER JOIN
@@ -241,54 +241,45 @@ FROM
         }
         return $this->selectAll($sql,$param);
     }
-    public function getBankSummaryGroupBy($period,$grouby='master_staff.BCODE',$deptcd = null){
-        $param = [':period' => $period,
-            ':period2' => $period];
+    public function getBankSummaryGroupBy($period, $grouby = 'master_staff.BCODE', $deptcd = null) {
+        $param = [
+            ':period' => $period,
+            ':period2' => $period
+        ];
 
         $sql = "SELECT
-	ANY_VALUE(tbl_master.staff_id) AS staff_id, 
-	sum(tbl_master.allow) AS allow, 
-	(sum( tbl_master.allow ) - sum( tbl_master.deduc ) ) AS net, 
-	sum(tbl_master.deduc) AS deduc, 
-	any_value ( master_staff.`NAME` ) AS `NAME`, 
-	ANY_value ( tbl_dept.dept ) AS dept, 
-	any_value ( master_staff.ACCTNO ) AS acctno, 
-	any_value ( master_staff.GRADE ) AS grade, 
-	any_value ( master_staff.STEP ) AS step, 
-	any_value ( tbl_bank.BNAME ) AS BNAME, 
-	any_value ( tbl_bank.BCODE ) AS bankcode, 
-	COUNT(DISTINCT (tbl_master.staff_id)) AS staff_count, 
-	ANY_VALUE(tbl_salaryType.SalaryType) AS SalaryType
-FROM
-	tbl_master
-	LEFT JOIN
-	master_staff
-	ON 
-		tbl_master.staff_id = master_staff.staff_id
-	LEFT JOIN
-	tbl_dept
-	ON 
-		master_staff.DEPTCD = tbl_dept.dept_id
-	INNER JOIN
-	tbl_bank
-	ON 
-		master_staff.BCODE = tbl_bank.bank_ID
-	LEFT JOIN
-	tbl_salaryType
-	ON 
-		master_staff.SALARY_TYPE = tbl_salaryType.salaryType_id
-    WHERE tbl_master.period  = :period AND master_staff.period = :period2";
-        if($deptcd != NULL){
-        $sql .= " AND master_staff.DEPTCD  = :DEPTCD ";
-            $sql .=" GROUP BY master_staff.staff_id";
+        MIN(tbl_master.staff_id) AS staff_id, 
+        SUM(tbl_master.allow) AS allow, 
+        (SUM(tbl_master.allow) - SUM(tbl_master.deduc)) AS net, 
+        SUM(tbl_master.deduc) AS deduc, 
+        MIN(master_staff.`NAME`) AS `NAME`, 
+        MIN(tbl_dept.dept) AS dept, 
+        MIN(master_staff.ACCTNO) AS acctno, 
+        MIN(master_staff.GRADE) AS grade, 
+        MIN(master_staff.STEP) AS step, 
+        MIN(tbl_bank.BNAME) AS BNAME, 
+        MIN(tbl_bank.BCODE) AS bankcode, 
+        COUNT(DISTINCT tbl_master.staff_id) AS staff_count, 
+        MIN(tbl_salaryType.SalaryType) AS SalaryType
+    FROM
+        tbl_master
+        LEFT JOIN master_staff ON tbl_master.staff_id = master_staff.staff_id
+        LEFT JOIN tbl_dept ON master_staff.DEPTCD = tbl_dept.dept_id
+        INNER JOIN tbl_bank ON master_staff.BCODE = tbl_bank.bank_ID
+        LEFT JOIN tbl_salaryType ON master_staff.SALARY_TYPE = tbl_salaryType.salaryType_id
+    WHERE
+        tbl_master.period = :period AND master_staff.period = :period2";
+
+        if ($deptcd !== null && $deptcd !== "") {
+            $sql .= " AND master_staff.DEPTCD = :DEPTCD ";
+            $sql .= " GROUP BY master_staff.staff_id";
             $additionalParam = [':DEPTCD' => $deptcd];
             $param = array_merge($param, $additionalParam);
-        }else{
-            $sql .=" GROUP BY {$grouby}";
+        } else {
+            $sql .= " GROUP BY {$grouby}";
         }
 
-
-        return $this->selectAll($sql,$param);
+        return $this->selectAll($sql, $param);
     }
 
     public function getGrossPay($period){
@@ -346,25 +337,24 @@ FROM
             ':grade'=>$grade];
         return $this->selectAll($sql,$param);
     }
-    public function getReportSummary($period, $columnName)
-    {
-        // Define allowed column names to prevent SQL injection
+    public function getReportSummary($period, $columnName) {
         $allowedColumns = ['allow', 'deduc'];
-
-        // Check if the provided column name is allowed
         if (!in_array($columnName, $allowedColumns)) {
             throw new InvalidArgumentException('Invalid column name provided.');
         }
-
-        // Initialize the query and parameters
-        $query = "SELECT SUM($columnName) AS value, tbl_earning_deduction.edDesc
+        $query = "SELECT CAST(SUM($columnName) AS DECIMAL(15,2)) AS value, tbl_earning_deduction.edDesc
               FROM tbl_master
               INNER JOIN tbl_earning_deduction ON tbl_master.allow_id = tbl_earning_deduction.ed_id
               WHERE $columnName <> 0 AND period = :period
               GROUP BY tbl_master.allow_id";
         $params = [':period' => $period];
-
-        return $this->selectAll($query, $params);
+        $results = $this->selectAll($query, $params);
+        if ($results) {
+            foreach ($results as &$result) {
+                $result['value'] = floatval($result['value']); // Ensure value is numeric
+            }
+        }
+        return $results ?: [];
     }
 
     public function getReportDeductionList($period, $type,$allow_id)
@@ -608,7 +598,7 @@ public function create_user($staff_id, $username, $password, $role_id, $deleted=
         $params = [];
 
         if ($staff_id !== null) {
-            $query .= ' WHERE staff_id = :staff_id';
+            $query .= ' WHERE employee.staff_id = :staff_id';
             $params = [':staff_id' => $staff_id];
             return $this->selectOne($query, $params);
         } else {

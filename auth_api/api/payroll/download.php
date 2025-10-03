@@ -88,6 +88,7 @@ try {
         e.OGNO,
         e.GRADE,
         e.STEP,
+        e.TIN,
         e.ACCTNO,
         d.dept,
         b.BNAME,
@@ -199,6 +200,7 @@ try {
     $pdf->Cell(95, 7, 'Dept: ' . $employee['dept'], 0, 0);
     $pdf->Cell(95, 7, 'Bank: ' . $employee['BNAME'], 0, 1);
     $pdf->Cell(95, 7, 'Acct No.: ' . $employee['ACCTNO'], 0, 0);
+    $pdf->Cell(95, 7, 'TIN: ' . $employee['TIN'], 0, 0);
     $pdf->Cell(95, 7, 'Grade/Step: ' . $employee['GRADE'] . '/' . $employee['STEP'], 0, 1);
     $pdf->Cell(190, 7, 'Salary Structure: ' . $employee['SalaryType'], 0, 1);
 

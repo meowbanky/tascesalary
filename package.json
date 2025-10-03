@@ -128,7 +128,8 @@
     "yargs-parser": "^21.1.1"
   },
   "scripts": {
-    "build": "postcss assets/css/input.css -o assets/css/style.css --watch --verbose"
+    "build": "npx tailwindcss -i assets/css/input.css -o assets/css/tailwind.css --watch --content './*.php' --content './partials/*.php' --content './view/*.php'",
+    "build-once": "npx tailwindcss -i assets/css/input.css -o assets/css/tailwind.css --content './*.php' --content './partials/*.php' --content './view/*.php'"
   },
   "keywords": [],
   "author": "",

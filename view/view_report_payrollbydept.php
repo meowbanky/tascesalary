@@ -13,9 +13,14 @@ $depts = $App->getDeptDetails()
     <div class="container mx-auto py-8">
         <div class="flex justify-between">
             <h1 class="text-2xl font-bold mb-6"></h1>
-            <button id="download-excel-button" class="ml-2 mb-2 px-4 py-2 bg-green-600 text-white rounded-md shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
-                <i class="fas fa-download"></i> Download Excel
-            </button>
+            <div>
+                <button id="export-pdf-button" class="ml-2 mb-2 px-4 py-2 bg-orange-500 text-white rounded-md shadow-sm hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500">
+                    <i class="fas fa-file-pdf"></i> Export PDF
+                </button>
+                <button id="download-excel-button" class="ml-2 mb-2 px-4 py-2 bg-green-600 text-white rounded-md shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                    <i class="fas fa-download"></i> Download Excel
+                </button>
+            </div>
         </div>
 
         <div class="container mx-auto p-4">
@@ -30,7 +35,7 @@ $depts = $App->getDeptDetails()
                     </div>
                 </div>
                 <div class="mb-4">
-                    <label for="dept" class="block text-sm font-medium text-gray-700">Pay Period :</label>
+                    <label for="dept" class="block text-sm font-medium text-gray-700">Department :</label>
                     <select id="dept" name="dept" class="w-full border border-gray-300 rounded-md p-2 mt-1">
                         <option value="">All Dept</option>
                         <?php
@@ -51,14 +56,14 @@ $depts = $App->getDeptDetails()
                         ?>
                     </select>
                 </div>
-
+                <div class="mb-4">
+                    <label for="email" class="block text-sm font-medium text-gray-700">Email (Optional):</label>
+                    <input type="email" id="email" name="email" class="w-full mt-1 border border-gray-300 rounded-md p-2" placeholder="Enter email to send report (leave blank to download)">
+                </div>
                 <div class="flex justify-start mb-4">
                     <button id="submit" type="button" class="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 focus:outline-none">Submit</button>
                 </div>
-
                 <div id="table"></div>
-
-
             </div>
         </div>
     </div>
@@ -66,23 +71,47 @@ $depts = $App->getDeptDetails()
 <div class="backdrop" id="backdrop">
     <div class="spinner"></div>
 </div>
+
 <script>
     $(document).ready(function() {
         function setModalMaxHeight() {
             var screenHeight = window.innerHeight;
-            var modalMaxHeight = screenHeight - 60; // Subtract 60px from screen height
-            $('.modal-content').css('max-height', 70 + 'vh');
+            var modalMaxHeight = screenHeight - 60;
+            $('.modal-content').css('max-height', '70vh');
         }
 
-        $('#download-excel-button').click(function() {
+        function validateEmail(email) {
+            if (!email) return true; // Empty email is valid (will trigger download)
+            var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return emailRegex.test(email);
+        }
+
+        function validateInputs() {
             var period = $('#pay_period').val();
-            var dept = $('#dept').val();
-            window.location.href = 'libs/generate_excel_payrollbydept.php?payperiod=' + period + '&dept=' + dept;
-        });
+            var email = $('#email').val();
+            if (!period) {
+                alert('Please select a pay period.');
+                $('#backdrop').hide();
+                return false;
+            }
+            if (email && !validateEmail(email)) {
+                alert('Please enter a valid email address or leave it blank.');
+                $('#backdrop').hide();
+                return false;
+            }
+            return true;
+        }
 
         $('#submit').click(function(event) {
-            document.getElementById("backdrop").style.display = "flex";
             event.preventDefault();
+            if (!validateInputs()) return;
+
+            var $button = $(this);
+            var $backdrop = $('#backdrop');
+
+            $backdrop.show();
+            $button.prop('disabled', true);
+
             $.ajax({
                 type: 'POST',
                 url: 'libs/get_report_payrollbydept.php',
@@ -92,13 +121,32 @@ $depts = $App->getDeptDetails()
                 },
                 success: function(response) {
                     $('#table').html(response);
-                    $('#backdrop').hide();
+                    $backdrop.hide();
+                    $button.prop('disabled', false);
                 },
                 error: function(xhr, status, error) {
-                    console.log(error);
-                    $('#backdrop').hide();
+                    console.error('AJAX Error:', error, xhr.responseText);
+                    alert('An error occurred while loading the payroll summary. Please try again.');
+                    $backdrop.hide();
+                    $button.prop('disabled', false);
                 }
             });
+        });
+
+        $('#download-excel-button').click(function() {
+            if (!validateInputs()) return;
+            var period = $('#pay_period').val();
+            var dept = $('#dept').val();
+            var email = $('#email').val();
+            window.location.href = 'libs/generate_excel_payrollbydept.php?payperiod=' + period + '&dept=' + dept + (email ? '&email=' + encodeURIComponent(email) : '');
+        });
+
+        $('#export-pdf-button').click(function() {
+            if (!validateInputs()) return;
+            var period = $('#pay_period').val();
+            var dept = $('#dept').val();
+            var email = $('#email').val();
+            window.location.href = 'libs/generate_pdf_payrollbydept.php?payperiod=' + period + '&dept=' + dept + (email ? '&email=' + encodeURIComponent(email) : '');
         });
     });
 </script>
