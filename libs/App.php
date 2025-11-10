@@ -645,18 +645,18 @@ FROM
     {
         // Initialize the query and parameters
         $query = 'SELECT
-                    tbl_pfa.PFACODE, 
+                    tbl_pfa.PFACODE,
                     tbl_pfa.PFANAME
-                    FROM
-                    tbl_pfa ORDER BY PFACODE';
+                  FROM
+                    tbl_pfa';
         $params = [];
         if ($PFACODE !== null) {
             $query .= ' WHERE PFACODE = :PFACODE';
             $params = [':PFACODE' => $PFACODE];
             return $this->selectOne($query, $params);
-        } else {
-            return $this->selectAll($query, $params);
         }
+        $query .= ' ORDER BY PFACODE';
+        return $this->selectAll($query, $params);
     }
 
     public function getBanksDetails($bank_ID = null)
@@ -753,8 +753,8 @@ public function insertPeriod($description,$periodYear){
             $stmt->execute();
 
             static $logCleanupCounter = 0;
-            $maxRows = defined('OPERATION_LOG_MAX_ROWS') ? (int)OPERATION_LOG_MAX_ROWS : 20000;
-            $cleanupBatch = defined('OPERATION_LOG_CLEANUP_BATCH') ? (int)OPERATION_LOG_CLEANUP_BATCH : 2000;
+            $maxRows = defined('OPERATION_LOG_MAX_ROWS') ? (int)constant('OPERATION_LOG_MAX_ROWS') : 20000;
+            $cleanupBatch = defined('OPERATION_LOG_CLEANUP_BATCH') ? (int)constant('OPERATION_LOG_CLEANUP_BATCH') : 2000;
 
             if ($maxRows > 0 && ++$logCleanupCounter >= 100) {
                 $logCleanupCounter = 0;
