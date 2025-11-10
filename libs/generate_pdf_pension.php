@@ -13,8 +13,8 @@ class CustomTCPDF extends TCPDF {
     private $currentDate = '';
 
     public function setCustomFooterData($printedBy, $currentDate) {
-        $this->printedBy = $printedBy;
-        $this->currentDate = $currentDate;
+        $this->printedBy = $printedBy !== null ? (string)$printedBy : '';
+        $this->currentDate = $currentDate !== null ? (string)$currentDate : '';
     }
 
     public function Footer() {
@@ -60,7 +60,8 @@ if (isset($_GET['payperiod']) && isset($_GET['pfa'])) {
         error_log('Failed to retrieve business information');
         die('Error: Unable to retrieve business information.');
     }
-    $businessName = str_replace(',', ",\n", $businessInfo['business_name']);
+    $businessNameRaw = $businessInfo['business_name'] ?? '';
+    $businessName = str_replace(',', ",\n", (string)$businessNameRaw);
 
     // Get logged-in user details
     $userDetails = $App->getUsersDetails($_SESSION['SESS_MEMBER_ID']);
@@ -68,7 +69,7 @@ if (isset($_GET['payperiod']) && isset($_GET['pfa'])) {
         error_log('Failed to retrieve user details for user ID: ' . $_SESSION['SESS_MEMBER_ID']);
         die('Error: Unable to retrieve user details.');
     }
-    $printedBy = $userDetails['NAME'];
+    $printedBy = $userDetails['NAME'] ?? '';
 
     // Get pension data
     $getPensions = $App->getPfa($period, $pfa);

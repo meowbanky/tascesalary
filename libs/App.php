@@ -1254,6 +1254,7 @@ public function updateGradeStep($grade,$step,$staff_id)
     public function googlelogin($email)
     {
         $_SESSION['google_login'] = false;
+        $data = [];
         try {
             $query = $this->link->prepare('SELECT employee.name, role_id,employee.EMAIL,username.username,username.profile_picture, username.`password`, username.role, username.staff_id FROM username
                     INNER JOIN employee ON employee.staff_id = username.staff_id WHERE EMAIL = ? AND deleted = ?');
@@ -1301,6 +1302,8 @@ public function updateGradeStep($grade,$step,$staff_id)
             }
         } catch (PDOException $e) {
             echo $e->getMessage();
+            $data['success'] = 'false';
+            $data['message'] = 'Database error: '.$e->getMessage();
         }
         return json_encode($data);
 
@@ -1477,4 +1480,3 @@ public function updateGradeStep($grade,$step,$staff_id)
 
     }
 }
-
