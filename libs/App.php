@@ -204,6 +204,13 @@ FROM
         }
         return $this->selectAll($sql,$param);
     }
+
+    public function getBankName($bank_ID)
+    {
+        $query = "SELECT BNAME FROM tbl_bank WHERE bank_ID = :bank_ID";
+        $params = [':bank_ID' => $bank_ID];
+        return $this->selectOne($query, $params);
+    }
     public function getPfa($period,$pfacode=-1){
 
         $sql = "SELECT

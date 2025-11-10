@@ -3,16 +3,30 @@ require_once 'App.php';
 $App = new App();
 $App->checkAuthentication();
 
+$GrossPays = [];
+$periodDescription = '';
+$bankName = '';
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    if(isset($_POST['payperiod'])) {
-        $period = $_POST['payperiod'];
+    $period = $_POST['payperiod'] ?? null;
+    $bank = $_POST['bank'] ?? null;
+
+    $GrossPays = $App->getBankSummary($period, $bank);
+
+    $periodDescription = '';
+    if (!empty($period)) {
+        $periodRow = $App->getPeriodDescription($period);
+        if ($periodRow && isset($periodRow['period'])) {
+            $periodDescription = $periodRow['period'];
+        }
     }
 
-    if(isset($_POST['bank'])) {
-        $bank = $_POST['bank'];
+    if ($bank == -1) {
+        $bankName = 'All Banks';
+    } else {
+        $bankRow = $App->getBankName($bank);
+        $bankName = $bankRow['BNAME'] ?? 'Selected Bank';
     }
-$GrossPays = $App->getBankSummary($period,$bank);
 }
 
 
@@ -36,6 +50,21 @@ $GrossPays = $App->getBankSummary($period,$bank);
 </style>
 <div class="flex justify-center">
 <div class="overflow-x-auto pr-4 mx-auto payslipModal">
+    <div class="flex justify-between items-center mb-4">
+        <div>
+            <h2 class="text-xl font-semibold text-gray-800">Net to Bank</h2>
+            <?php if (!empty($periodDescription)): ?>
+                <p class="text-sm text-gray-600">Period: <?php echo htmlspecialchars($periodDescription); ?></p>
+            <?php endif; ?>
+            <p class="text-sm text-gray-600">Bank: <?php echo htmlspecialchars($bankName ?? ''); ?></p>
+        </div>
+        <button id="print-button" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md print:hidden">Print</button>
+    </div>
+    <?php if (empty($GrossPays)): ?>
+        <div class="text-center text-gray-500 py-6">
+            No data available for the selected period and bank.
+        </div>
+    <?php else: ?>
     <table id="table-search" class="min-w-full bg-white">
         <thead>
         <tr class="w-full bg-gray-200">
@@ -52,14 +81,13 @@ $GrossPays = $App->getBankSummary($period,$bank);
         </tr>
         </thead>
         <tbody>
-        <?php $gross=0; $deduct=0;$sn= 1; if($GrossPays){
-            $periodDescs = $App->getPeriodDescription($period);
-            $periodDesc = $periodDescs['period'];
+        <?php $gross=0; $deduct=0;$sn= 1;
             foreach($GrossPays as $GrossPay){
                 $padded = str_pad($GrossPay['staff_id'],3,"0",0);
-                $sm_padd = str_pad($sn,3,"0",0);?>
+                $sm_padd = str_pad($sn,3,"0",0);
+                ?>
             <tr>
-                <td class="border px-4 py-2"><?php echo 'TASCE_'.$periodDesc.' SAL_'.$sm_padd; ?></td>
+                <td class="border px-4 py-2"><?php echo 'TASCE_'.($periodDescription ?? '').'_SAL_'.$sm_padd; ?></td>
                 <td class="border px-4 py-2"><?php echo $GrossPay['NAME']; ?></td>
                 <td class="border px-4 py-2"><?php echo $GrossPay['STATUSCD']; ?></td>
                 <td class="border px-4 py-2"><?php echo number_format($GrossPay['allow']-$GrossPay['deduc']); ?></td>
@@ -72,14 +100,16 @@ $GrossPays = $App->getBankSummary($period,$bank);
            </tr>
         <?php $sn++;
             }
-        } ?>
+         ?>
 
 
         </tbody>
     </table>
+    <?php endif; ?>
 </div>
 </div>
 <script type="text/javascript">
+    <?php if (!empty($GrossPays)): ?>
     $('#table-search').DataTable({
         searching: false,
         pageLength: 100,
@@ -87,5 +117,10 @@ $GrossPays = $App->getBankSummary($period,$bank);
         ordering: true,
         dom: '<"flex  items-center justify-between my-2"lf>t<"flex items-center justify-between"ip>',
 
+    });
+    <?php endif; ?>
+
+    $('#print-button').on('click', function() {
+        window.print();
     });
 </script>

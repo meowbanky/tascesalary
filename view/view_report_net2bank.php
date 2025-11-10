@@ -120,7 +120,7 @@ $banks = $App->selectDrop("SELECT BANK_ID,BNAME FROM tbl_bank");
             event.preventDefault();
             if (!validateInputs()) return;
 
-            $('#backdrop').show();
+            $('#backdrop').css('display', 'flex');
             var $button = $(this);
             $button.prop('disabled', true);
 

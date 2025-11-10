@@ -5,30 +5,28 @@ $App->checkAuthentication();
 
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    if(isset($_POST['payperiod'])) {
-        $period = $_POST['payperiod'];
+    $period = $_POST['payperiod'] ?? null;
+    $list = $_POST['list'] ?? null;
+    $allow_id = $_POST['allow_id'] ?? null;
+    $type = $_POST['type'] ?? null;
+
+    $allow_deduc = $type == 1 ? 'Allowance' : 'Deduction';
+
+    $Deductions = $App->getReportDeductionList($period, $type, $allow_id);
+
+    $allowDescription = $App->getAllowanceDescription($allow_id);
+    $allowDescription = $allowDescription['ed'] ?? '';
+
+    $periodDescription = '';
+    if (!empty($period)) {
+        $periodDescRow = $App->getPeriodDescription($period);
+        if ($periodDescRow && isset($periodDescRow['period'])) {
+            $periodDescription = $periodDescRow['period'];
+        }
     }
-
-    if(isset($_POST['list'])){
-        $list =    $_POST['list'];
-    }
-
-    if(isset($_POST['allow_id'])){
-        $allow_id  =    $_POST['allow_id'];
-    }
-    if(isset($_POST['type'])){
-        $type =    $_POST['type'];
-    }
-
-$allow_deduc = $type == 1 ? 'Allowance' : 'Deduction';
-
-$Deductions = $App->getReportDeductionList($period, $type,$allow_id);
-
-$allowDescription = $App->getAllowanceDescription($allow_id);
-$allowDescription = $allowDescription['ed'];
 }
 
-if($allow_id == ""){
+if (empty($allow_id)) {
     echo "Select Deduction/allowance";
     exit();
 }
@@ -56,7 +54,7 @@ if($allow_id == ""){
     <div id ="logoprint" class="flex justify-between items-center mb-4">
         <div class="flex items-center space-x-4">
             <img src="assets/images/ogun_logo.png" alt="Logo" class="w-16 h-16">
-            <h1 class="text-2xl font-bold"<?php echo  $_SESSION['businessname']; ?></h1>
+            <h1 class="text-2xl font-bold"><?php echo $_SESSION['businessname']; ?></h1>
         </div>
         <div>
 
@@ -65,7 +63,10 @@ if($allow_id == ""){
             <img src="assets/images/tasce_r_logo.png" alt="Logo" class="w-16 h-16">
         </div>
     </div>
-    <h1 class="font-bold text-center uppercase"><?php echo $allow_deduc.': ' .$allowDescription; ?></h1>
+    <h1 class="font-bold text-center uppercase"><?php echo $allow_deduc . ': ' . $allowDescription; ?></h1>
+    <?php if (!empty($periodDescription)): ?>
+        <p class="text-center text-sm text-gray-600 mb-4">Period: <?php echo htmlspecialchars($periodDescription); ?></p>
+    <?php endif; ?>
     <table id="table-search" class="min-w-full bg-white print:block">
         <thead>
         <tr class="w-full bg-gray-200">

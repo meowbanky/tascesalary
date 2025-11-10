@@ -125,7 +125,7 @@ $lists = $App->selectDrop("SELECT tbl_earning_deduction.ed_id, tbl_earning_deduc
             event.preventDefault();
             if (!validateInputs()) return;
 
-            $('#backdrop').show();
+            $('#backdrop').css('display', 'flex');
             var $button = $(this);
             $button.prop('disabled', true);
             var selectedOption = $('#pay_list').find(':selected');
