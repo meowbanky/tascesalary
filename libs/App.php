@@ -726,20 +726,51 @@ public function insertPeriod($description,$periodYear){
     }
 
     public function log($operation, $table, $data, $userId) {
+        if (defined('DISABLE_DB_LOGGING') && DISABLE_DB_LOGGING) {
+            return;
+        }
+
         $query = "INSERT INTO operation_logs (operation, table_name, data, user_id) VALUES (:operation, :table_name, :data, :user_id)";
-        $stmt = $this->link->prepare($query);
 
-        $operationVar = $operation;
-        $tableVar = $table;
-        $dataVar = json_encode($data);
-        $userIdVar = $userId;
+        try {
+            $stmt = $this->link->prepare($query);
 
-        $stmt->bindParam(':operation', $operationVar);
-        $stmt->bindParam(':table_name', $tableVar);
-        $stmt->bindParam(':data', $dataVar);
-        $stmt->bindParam(':user_id', $userIdVar);
+            $operationVar = $operation;
+            $tableVar = $table;
+            $dataVar = json_encode($data);
 
-        $stmt->execute();
+            if ($dataVar !== false && strlen($dataVar) > 2000) {
+                $dataVar = substr($dataVar, 0, 2000) . '...';
+            }
+
+            $userIdVar = $userId;
+
+            $stmt->bindParam(':operation', $operationVar);
+            $stmt->bindParam(':table_name', $tableVar);
+            $stmt->bindParam(':data', $dataVar);
+            $stmt->bindParam(':user_id', $userIdVar);
+
+            $stmt->execute();
+
+            static $logCleanupCounter = 0;
+            $maxRows = defined('OPERATION_LOG_MAX_ROWS') ? (int)OPERATION_LOG_MAX_ROWS : 20000;
+            $cleanupBatch = defined('OPERATION_LOG_CLEANUP_BATCH') ? (int)OPERATION_LOG_CLEANUP_BATCH : 2000;
+
+            if ($maxRows > 0 && ++$logCleanupCounter >= 100) {
+                $logCleanupCounter = 0;
+                $countStmt = $this->link->query('SELECT COUNT(*) FROM operation_logs');
+                if ($countStmt) {
+                    $rowCount = (int)$countStmt->fetchColumn();
+                    if ($rowCount > $maxRows) {
+                        $deleteStmt = $this->link->prepare('DELETE FROM operation_logs ORDER BY id ASC LIMIT :batch');
+                        $deleteStmt->bindValue(':batch', $cleanupBatch, PDO::PARAM_INT);
+                        $deleteStmt->execute();
+                    }
+                }
+            }
+        } catch (PDOException $e) {
+            // Silently ignore logging issues
+        }
     }
 
     public function getEmployeeDetailsPayslip($staff_id,$period)
