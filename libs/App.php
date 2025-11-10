@@ -827,15 +827,31 @@ FROM
           }
 
     public function completedEarnings($staff_id,$allow_id,$period,$value,$type){
+        static $completedLoanExists = null;
+
+        if ($completedLoanExists === null) {
+            try {
+                $stmt = $this->link->query("SHOW TABLES LIKE 'completedLoan'");
+                $completedLoanExists = $stmt && $stmt->fetch(PDO::FETCH_NUM) !== false;
+            } catch (PDOException $e) {
+                $completedLoanExists = false;
+            }
+        }
+
+        if (!$completedLoanExists) {
+            return false;
+        }
+
         $query = 'INSERT INTO completedLoan (staff_id,allow_id,period,value,type)VALUES (:staff_id,:allow_id,:period,:value,:type)';
-        $array = [  ':staff_id'=> $staff_id,
-                    ':allow_id'=> $allow_id,
-                    ':period'=> $period,
-                    ':value'=> $value,
-                    ':type'=> $type
+        $array = [
+            ':staff_id'=> $staff_id,
+            ':allow_id'=> $allow_id,
+            ':period'=> $period,
+            ':value'=> $value,
+            ':type'=> $type
         ];
 
-       return  $this->executeNonSelect($query,$array);
+        return $this->executeNonSelect($query,$array);
     }
     public function getEmployeesEarnings($staff_id,$edType) {
         $earning_array = [

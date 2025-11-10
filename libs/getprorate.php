@@ -44,17 +44,19 @@ if(isset($_POST['calculate'])) {
 
 if(isset($_POST['finalise'])) {
     $updatedAllowances = $App->getProratedAllowances($staff_id, 1);
-    foreach ($updatedAllowances as $allowance) {
-        $App->deleteAllowance($staff_id, $allowance['allow_id']);
-        $App->insertProratedAllow($staff_id, $allowance['allow_id'], $allowance['value']);
+    if ($updatedAllowances) {
+        foreach ($updatedAllowances as $allowance) {
+            $App->deleteAllowance($staff_id, $allowance['allow_id']);
+            $App->insertProratedAllow($staff_id, $allowance['allow_id'], $allowance['value']);
+        }
+        $delete = $App->deleteProrate($staff_id);
+        $message = $App->updateEmployeeProrate($staff_id, $step);
+
+        if ($message) {
+            echo 'success';
+        }
+    } else {
+        echo 'No Record Found';
     }
-    $delete = $App->deleteProrate($staff_id);
-    $message = $App->updateEmployeeProrate($staff_id, $step);
-
-   if( $message ){
-       echo 'success';
-   }
-
-
 }
 ?>
