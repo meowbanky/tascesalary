@@ -726,7 +726,7 @@ public function insertPeriod($description,$periodYear){
     }
 
     public function log($operation, $table, $data, $userId) {
-        if (defined('DISABLE_DB_LOGGING') && DISABLE_DB_LOGGING) {
+        if (defined('DISABLE_DB_LOGGING') && constant('DISABLE_DB_LOGGING')) {
             return;
         }
 
