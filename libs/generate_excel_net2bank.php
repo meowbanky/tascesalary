@@ -35,9 +35,19 @@ if (isset($_GET['payperiod']) && isset($_GET['bank'])) {
     }
     $periodDesc = $periodDescs['period'];
 
-    // Get bank name
-    $bankName = ($bank == -1) ? 'All Banks' : $App->getBankName($bank)['BNAME'] ?? 'Unknown Bank';
-    if ($bank != -1 && $bankName == 'Unknown Bank') {
+    // Get bank name with backward compatibility (in case getBankName helper is absent)
+    if ($bank == -1) {
+        $bankName = 'All Banks';
+    } else {
+        if (method_exists($App, 'getBankName')) {
+            $bankRow = $App->getBankName($bank);
+        } else {
+            $bankRow = $App->getBanksDetails($bank);
+        }
+        $bankName = $bankRow['BNAME'] ?? 'Unknown Bank';
+    }
+
+    if ($bank != -1 && $bankName === 'Unknown Bank') {
         error_log('Invalid bank ID: ' . $bank);
         die('Error: Invalid bank selection.');
     }
