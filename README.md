@@ -10,7 +10,7 @@
 **Enterprise-grade payroll automation system for educational institutions.**  
 Streamlines salary computation, statutory deductions, and comprehensive reporting with a modern interface.
 
-[Live Demo](#) • [Documentation](#) • [Report Bug](https://github.com/meowbanky/tascesalary/issues)
+[Live Demo](https://tascesalary.com.ng/) • [Documentation](#) • [Report Bug](https://github.com/meowbanky/tascesalary/issues)
 
 </div>
 
@@ -23,12 +23,14 @@ The TASCE Payroll System is a comprehensive solution designed to automate salary
 ## 🎯 Key Features
 
 ### Payroll Automation
+
 - **Batch Processing**: Process payroll for thousands of staff members in a single operation
 - **Automatic Calculations**: Handles consolidated salary, allowances, and deductions based on grade and step levels
 - **Statutory Compliance**: Automated tax, pension, and other statutory deductions
 - **Period Management**: Flexible pay period configuration and historical tracking
 
 ### Financial Reporting
+
 - **Bank Reconciliation**: Export formats compatible with banking systems for direct processing
 - **Department Analytics**: Breakdown by departments with comparative analysis
 - **Variance Analysis**: Month-over-month salary variance tracking and reporting
@@ -36,18 +38,21 @@ The TASCE Payroll System is a comprehensive solution designed to automate salary
 - **Tax Exports**: Standardized formats for tax filing and compliance
 
 ### Document Generation
+
 - **Bulk Payslip Generation**: PDF payslips for all staff in batch operations
 - **Individual Payslips**: On-demand payslip generation with email delivery
 - **Excel Exports**: Exportable reports in Excel format for further analysis
 - **Print-Ready Formats**: Professional formatting suitable for official documentation
 
 ### Security & Access Control
+
 - **Google OAuth Integration**: Single Sign-On (SSO) using Google accounts
 - **Role-Based Access**: Granular permissions for Bursary, Audit, HR, and Staff roles
 - **Session Management**: Secure session handling with token-based authentication
 - **Audit Logging**: Comprehensive activity logs for compliance and security
 
 ### Data Management
+
 - **Excel Import**: Bulk staff data updates via Excel templates
 - **Profile Management**: Staff profiles with photo uploads and metadata
 - **Database Backups**: Automated backup scheduling and management
@@ -142,9 +147,11 @@ mysql -u root -p tasce_payroll < database/schema.sql
 ### 5. Web Server Configuration
 
 #### Apache
+
 Ensure mod_rewrite is enabled and point your document root to the project directory.
 
 #### Nginx
+
 Configure your server block to point to the project directory.
 
 ### 6. Permissions
