@@ -192,7 +192,7 @@ The system provides comprehensive reporting capabilities accessible from the Rep
 - **Payslips**: Individual (`report_payslipone.php`) or bulk (`report_payslipall.php`) generation
 - **Bank Summary**: Export bank schedules for payment processing with account numbers
 - **Net to Bank**: Detailed net pay exports for bank reconciliation
-- **Pension Reports**: 
+- **Pension Reports**:
   - Aggregate pension by PFA (all PFAs or individual)
   - Individual staff pension history across date ranges
 - **Gross Pay Summary**: Complete breakdown of all earnings and allowances
@@ -215,6 +215,7 @@ All reports support PDF and Excel export formats with email delivery options.
 ### Mobile Access
 
 The system includes a Flutter mobile application (`auth_app/`) that provides:
+
 - Staff authentication via REST API
 - Payslip viewing and download
 - Payroll history access
@@ -280,7 +281,7 @@ This project is proprietary software developed for TASCE (Tai Solarin College of
 
 ## 👥 Authors
 
-- **Development Team** - [TASCE IT Department]
+- **Bankole Abiodun** - Lead Developer
 
 ## 🙏 Acknowledgments
 
