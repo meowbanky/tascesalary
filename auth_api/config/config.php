@@ -1,13 +1,19 @@
 <?php
+// Load .env file if env_loader exists
+$envLoaderPath = dirname(__DIR__, 2) . '/config/env_loader.php';
+if (file_exists($envLoaderPath)) {
+    require_once $envLoaderPath;
+}
+
 return [
     'database' => [
-        'host' => 'localhost',
-        'username' => 'tascesal_root', // Your MySQL username
-        'password' => 'Oluwaseyi@7980', // Your MySQL password
-        'dbname' => 'tascesal_salary'
+        'host' => getenv('DB_HOST') ?: 'localhost',
+        'username' => getenv('DB_USER') ?: '',
+        'password' => getenv('DB_PASS') ?: '',
+        'dbname' => getenv('DB_NAME') ?: ''
     ],
     'jwt' => [
-        'secret' => '76acd9e37db202bf33e2641eec29a9de81aff48ce8dea5de05263f6e886123c0',
-        'expiry' => 3600 // 1 hour in seconds
+        'secret' => getenv('JWT_SECRET') ?: '',
+        'expiry' => (int)(getenv('JWT_EXPIRY') ?: 3600) // 1 hour in seconds
     ]
 ];
