@@ -248,6 +248,33 @@ FROM
         }
         return $this->selectAll($sql,$param);
     }
+    public function getPfaSummary($period) {
+        $sql = "SELECT
+            COALESCE(tbl_pfa.PFANAME, 'Unknown') AS PFANAME,
+            SUM(CASE WHEN master_staff.STATUSCD = 'S' THEN tbl_master.deduc ELSE 0 END) AS suspended,
+            SUM(tbl_master.deduc) AS total
+        FROM
+            tbl_master
+            INNER JOIN tbl_earning_deduction
+                ON tbl_master.allow_id = tbl_earning_deduction.ed_id
+            INNER JOIN master_staff
+                ON tbl_master.staff_id = master_staff.staff_id
+            LEFT JOIN tbl_pfa
+                ON master_staff.PFACODE = tbl_pfa.PFACODE
+        WHERE
+            tbl_master.period = :period
+            AND master_staff.period = :period2
+            AND tbl_master.allow_id = 25
+        GROUP BY
+            master_staff.PFACODE, tbl_pfa.PFANAME
+        ORDER BY
+            tbl_pfa.PFANAME";
+        $param = [
+            ':period' => $period,
+            ':period2' => $period
+        ];
+        return $this->selectAll($sql, $param);
+    }
     public function getBankSummaryGroupBy($period, $grouby = 'master_staff.BCODE', $deptcd = null) {
         $param = [
             ':period' => $period,
@@ -641,6 +668,65 @@ FROM
 
     }
 
+    public static function maskSensitiveValue($value, $visibleStart = 3, $visibleEnd = 2, $maskChar = '*')
+    {
+        if ($value === null) {
+            return '';
+        }
+
+        $value = trim((string)$value);
+        $length = strlen($value);
+
+        if ($length === 0) {
+            return '';
+        }
+
+        if ($length <= $visibleStart + $visibleEnd) {
+            return str_repeat($maskChar, $length);
+        }
+
+        $maskedLength = $length - ($visibleStart + $visibleEnd);
+        return substr($value, 0, $visibleStart)
+            . str_repeat($maskChar, $maskedLength)
+            . substr($value, -$visibleEnd);
+    }
+
+    public static function maskAccountNumber($accountNumber)
+    {
+        return self::maskSensitiveValue($accountNumber, 3, 2);
+    }
+
+    public static function maskTIN($tin)
+    {
+        return self::maskSensitiveValue($tin, 3, 3);
+    }
+
+    public static function normalizePeriodId($value)
+    {
+        if ($value === null) {
+            return null;
+        }
+
+        if (is_int($value)) {
+            return $value;
+        }
+
+        $stringValue = trim((string)$value);
+        if ($stringValue === '') {
+            return null;
+        }
+
+        if (ctype_digit($stringValue)) {
+            return (int)$stringValue;
+        }
+
+        if (preg_match('/\d+/', $stringValue, $matches)) {
+            return (int)$matches[0];
+        }
+
+        return null;
+    }
+
     public function getPfaDetails($PFACODE = null)
     {
         // Initialize the query and parameters
@@ -656,6 +742,50 @@ FROM
             return $this->selectOne($query, $params);
         }
         $query .= ' ORDER BY PFACODE';
+        return $this->selectAll($query, $params);
+    }
+
+    public function getStaffProfile($staffId)
+    {
+        $query = "SELECT
+                    ms.staff_id,
+                    ms.NAME,
+                    ms.OGNO,
+                    ms.PFAACCTNO,
+                    ms.PFACODE,
+                    IFNULL(pfa.PFANAME, '') AS PFANAME
+                FROM
+                    master_staff ms
+                LEFT JOIN tbl_pfa pfa ON ms.PFACODE = pfa.PFACODE
+                WHERE ms.staff_id = :staff_id
+                ORDER BY ms.period DESC
+                LIMIT 1";
+
+        return $this->selectOne($query, [':staff_id' => $staffId]);
+    }
+
+    public function getStaffPensionHistory($staffId, $periodFrom, $periodTo)
+    {
+        $query = "SELECT
+                    tm.period,
+                    CONCAT(pp.description, '-', pp.periodYear) AS period_name,
+                    SUM(tm.deduc) AS amount
+                FROM
+                    tbl_master tm
+                INNER JOIN payperiods pp ON tm.period = pp.periodId
+                WHERE
+                    tm.allow_id = 25
+                    AND tm.staff_id = :staff_id
+                    AND tm.period BETWEEN :period_from AND :period_to
+                GROUP BY tm.period, period_name
+                ORDER BY tm.period";
+
+        $params = [
+            ':staff_id' => $staffId,
+            ':period_from' => $periodFrom,
+            ':period_to' => $periodTo
+        ];
+
         return $this->selectAll($query, $params);
     }
 
@@ -784,6 +914,7 @@ public function insertPeriod($description,$periodYear){
 	master_staff.staff_id, 
 	master_staff.`NAME`, 
 	master_staff.OGNO, 
+    COALESCE(employee.TIN,master_staff.TIN,  '') AS TIN,
 	tbl_dept.dept, 
 	tbl_bank.BNAME, 
 	master_staff.ACCTNO, 
@@ -804,7 +935,8 @@ FROM
 	tbl_salaryType
 	ON 
 		master_staff.SALARY_TYPE = tbl_salaryType.salaryType_id
-        WHERE staff_id = :staff_id and period =:period";
+    LEFT JOIN employee ON employee.staff_id = master_staff.staff_id
+        WHERE master_staff.staff_id = :staff_id and master_staff.period =:period";
 
 
         return $this->selectOne($query, $array);
@@ -1107,6 +1239,15 @@ GROUP BY
     }
     public function construct()
     {
+        // Check if PDO extension is available
+        if (!extension_loaded('pdo')) {
+            die('Error: PDO extension is not installed or enabled. Please contact your server administrator to enable the PDO extension for PHP.');
+        }
+        
+        if (!extension_loaded('pdo_mysql')) {
+            die('Error: PDO MySQL driver is not installed or enabled. Please contact your server administrator to enable the PDO MySQL extension (pdo_mysql) for PHP.');
+        }
+        
         try {
             $this->link = new PDO("mysql:host=" . $this->host . ";dbname=" . $this->dbname,
                 $this->user, $this->pass,
