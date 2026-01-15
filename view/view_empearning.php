@@ -444,10 +444,13 @@ require_once '../libs/getempearnings.php';
                 <span class="font-semibold">Dept:</span> <span><?php echo $employeePayslip['dept'] ?></span>
             </div>
             <div class="flex justify-between mb-2">
+                <span class="font-semibold">TIN:</span> <span><?php echo $employeePayslip['TIN'] ?? ''; ?></span>
+            </div>
+            <div class="flex justify-between mb-2">
                 <span class="font-semibold">Bank:</span> <span><?php echo $employeePayslip['BNAME'] ?></span>
             </div>
             <div class="flex justify-between mb-2">
-                <span class="font-semibold">Acct No.:</span> <span><?php echo $employeePayslip['ACCTNO'] ?></span>
+                <span class="font-semibold">Acct No.:</span> <span><?php echo $employeePayslip['ACCTNO']; ?></span>
             </div>
             <div class="flex justify-between mb-2">
                 <span class="font-semibold">OG NO.:</span> <span><?php echo $employeePayslip['OGNO'] ?></span>

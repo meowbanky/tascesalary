@@ -29,7 +29,7 @@ class _PayslipDownloadButtonState extends State<PayslipDownloadButton> {
 
     try {
       await widget.payrollService
-          .downloadPayslip(periodId: widget.periodId); // Updated method call
+          .downloadPayslip(widget.periodId); // Updated method call
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

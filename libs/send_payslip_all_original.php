@@ -105,6 +105,7 @@ foreach ($staffList as $staff) {
             <table class='details'>
                 <tr><td>Name:</td><td>" . $employeePayslip['NAME'] . "</td></tr>
                 <tr><td>Staff No.:</td><td>" . $employeePayslip['OGNO'] . "</td></tr>
+                <tr><td>TIN:</td><td>" . ($employeePayslip['TIN'] ?? '') . "</td></tr>
                 <tr><td>Dept:</td><td>" . $employeePayslip['dept'] . "</td></tr>
                 <tr><td>Bank:</td><td>" . $employeePayslip['BNAME'] . "</td></tr>
                 <tr><td>Acct No.:</td><td>" . $employeePayslip['ACCTNO'] . "</td></tr>

@@ -129,6 +129,10 @@ class AuthService extends ChangeNotifier {
     _error = null;
     notifyListeners();
   }
+
+  Future<bool> checkAuthStatus() async {
+    return _isAuthenticated && _token != null;
+  }
 }
 
 // This class encapsulates the response from the login method

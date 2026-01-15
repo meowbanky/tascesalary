@@ -29,7 +29,9 @@ if ($employeeDetails) {
     if(($employeeDetails['SALARY_TYPE'] == '')||($employeeDetails['SALARY_TYPE'] ==null)){
         $employeeDetails['SALARY_TYPE'] = -1;
     }
+    $statusCd = $employeeDetails['STATUSCD'] ?? 'A';
     $App->insertStaffMaster(
+        $statusCd,
         $employeeDetails['SALARY_TYPE'],
         $employeeDetails['OGNO'],
         $employeeDetails['staff_id'],

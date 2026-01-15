@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../services/payroll_service.dart';
-import '../services/session_service.dart';
 
 class DashboardScreen extends StatefulWidget {
   final PayrollService payrollService;
@@ -69,7 +68,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
   Future<void> _downloadPayslip(int periodId) async {
     setState(() => isLoading = true);
     try {
-      await widget.payrollService.downloadPayslip(periodId: periodId);
+      await widget.payrollService.downloadPayslip(periodId);
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Payslip downloaded successfully')),
       );

@@ -47,7 +47,7 @@ class MyApp extends StatelessWidget {
         ),
         home: const SplashScreen(),
         routes: {
-          '/login': (context) => const LoginScreen(),
+          '/login': (context) => LoginScreen(),
           '/dashboard': (context) {
             final payrollService = PayrollService(
               baseUrl: 'https://tascesalary.com.ng/auth_api',

@@ -69,7 +69,7 @@ class PayrollService {
     }
   }
 
-  Future<void> downloadPayslip(int periodId, {required int periodId}) async {
+  Future<void> downloadPayslip(int periodId) async {
     final userId = sessionService.getUserId();
     if (userId == null) {
       throw Exception('Not logged in');

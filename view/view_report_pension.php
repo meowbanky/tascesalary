@@ -103,6 +103,11 @@ $pfas = $App->selectDrop("SELECT PFACODE, PFANAME FROM tbl_pfa");
                 $('#backdrop').hide();
                 return false;
             }
+            if (!/^\d+$/.test(pay_period)) {
+                alert('Invalid pay period selected.');
+                $('#backdrop').hide();
+                return false;
+            }
             if (!pfa) {
                 alert('Please select a PFA.');
                 $('#backdrop').hide();

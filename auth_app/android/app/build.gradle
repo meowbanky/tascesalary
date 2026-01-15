@@ -30,14 +30,6 @@ android {
         versionName = flutter.versionName
     }
 
-    buildTypes {
-        release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.debug
-        }
-    }
-
     signingConfigs {
         release {
             storeFile file('tasce.jks')
@@ -46,13 +38,15 @@ android {
             keyPassword 'Banzoo@2505'
         }
     }
+
     buildTypes {
-    release {
-        minifyEnabled true    // Enables code shrinking (required for shrinkResources)
-        shrinkResources true  // Removes unused resources
-        // Optionally, you can also specify the ProGuard file
-        proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-    }
+        release {
+            signingConfig = signingConfigs.release
+            minifyEnabled true    // Enables code shrinking (required for shrinkResources)
+            shrinkResources true  // Removes unused resources
+            // Optionally, you can also specify the ProGuard file
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
     }
 }
 

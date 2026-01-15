@@ -29,12 +29,13 @@ $App = new App();
 $App->checkAuthentication();
 
 if (isset($_GET['payperiod']) && isset($_GET['bank'])) {
-    $period = $_GET['payperiod'];
+    $periodRaw = $_GET['payperiod'];
+    $period = App::normalizePeriodId($periodRaw);
     $bank = $_GET['bank'];
     $email = isset($_GET['email']) ? urldecode($_GET['email']) : '';
 
     // Validate inputs
-    if (empty($period) || $bank === '') {
+    if ($period === null || $bank === '') {
         error_log('Invalid inputs: payperiod=' . $period . ', bank=' . $bank);
         die('Error: Pay period and bank are required.');
     }

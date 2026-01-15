@@ -9,6 +9,7 @@
     "setasign/fpdi": "^2.6",
     "google/apiclient": "^2.17",
     "ext-pdo": "*",
-    "ext-openssl": "*"
+    "ext-openssl": "*",
+    "symfony/polyfill-mbstring": "^1.31"
   }
 }

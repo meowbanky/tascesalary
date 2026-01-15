@@ -8,8 +8,15 @@ $periodDescription = '';
 $bankName = '';
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $period = $_POST['payperiod'] ?? null;
+    $periodRaw = $_POST['payperiod'] ?? null;
+    $period = App::normalizePeriodId($periodRaw);
     $bank = $_POST['bank'] ?? null;
+
+    if ($period === null) {
+        http_response_code(400);
+        echo 'Invalid pay period selected.';
+        return;
+    }
 
     $GrossPays = $App->getBankSummary($period, $bank);
 
@@ -105,8 +112,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     </td>
                     <td class="border px-4 py-2"><?php echo date('d/m/Y') ?></td>
                     <td class="border px-4 py-2"><?php echo 'TASCE '.$padded; ?></td>
-                    <td class="border px-4 py-2"><?php echo $GrossPay['acctno']; ?></td>
-                    <td class="border px-4 py-2"><?php echo $GrossPay['bankcode']; ?></td>
+                <td class="border px-4 py-2"><?php echo App::maskAccountNumber($GrossPay['acctno']); ?></td>
+                <td class="border px-4 py-2"><?php echo $GrossPay['bankcode']; ?></td>
                     <td class="border px-4 py-2"><?php echo '1229191715'; ?></td>
                     <td class="border px-4 py-2"><?php echo $GrossPay['bankname'];?></td>
                 </tr>

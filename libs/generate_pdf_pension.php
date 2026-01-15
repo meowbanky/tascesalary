@@ -29,12 +29,13 @@ $App = new App();
 $App->checkAuthentication();
 
 if (isset($_GET['payperiod']) && isset($_GET['pfa'])) {
-    $period = $_GET['payperiod'];
+    $periodRaw = $_GET['payperiod'];
+    $period = App::normalizePeriodId($periodRaw);
     $pfa = $_GET['pfa'];
     $email = isset($_GET['email']) ? urldecode($_GET['email']) : '';
 
     // Validate inputs
-    if (empty($period) || empty($pfa)) {
+    if ($period === null || $pfa === '') {
         error_log('Invalid inputs: payperiod=' . $period . ', pfa=' . $pfa);
         die('Error: Pay period and PFA are required.');
     }

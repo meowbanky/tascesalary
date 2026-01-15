@@ -74,4 +74,3 @@ echo "extension=pdo_mysql.so\n";
 
 echo "</pre>";
 ?>
-

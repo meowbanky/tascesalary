@@ -24,7 +24,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
 
     // Check if the email exists in the employee table
-    $checkEmailQuery = "SELECT EMAIL FROM employee WHERE EMAIL = :email LIMIT 1";
+    $checkEmailQuery = "SELECT staff_id FROM employee WHERE EMAIL = :email LIMIT 1";
     $checkEmailParams = [':email' => $email];
     $existingEmployee = $App->selectOne($checkEmailQuery, $checkEmailParams);
 
@@ -34,17 +34,28 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         echo json_encode($response);
         exit();
     }
+    
+    $staff_id = $existingEmployee['staff_id'];
 
     // Generate a unique token
-    $token = bin2hex(random_bytes(50));
+    $token = bin2hex(random_bytes(32)); // 64 chars
+    $otp = '000000'; // Default OTP as table requires it, though we are using link
 
     // Store the token in the database with an expiration date
     $expiry = date('Y-m-d H:i:s', strtotime('+1 hour'));
-    $query = "INSERT INTO password_resets (email, token, expiry) VALUES (:email, :token, :expiry) ON DUPLICATE KEY UPDATE token=:token, expiry=:expiry";
+    
+    // Using schema: user_id, otp, reset_token, expires_at, created_at
+    // First clear old requests for this user
+    $clearQuery = "DELETE FROM password_resets WHERE user_id = :user_id";
+    $clearParams = [':user_id' => $staff_id];
+    $App->executeNonSelect($clearQuery, $clearParams);
+    
+    $query = "INSERT INTO password_resets (user_id, otp, reset_token, expires_at, created_at) VALUES (:user_id, :otp, :reset_token, :expires_at, NOW())";
     $params = [
-        ':email' => $email,
-        ':token' => $token,
-        ':expiry' => $expiry
+        ':user_id' => $staff_id,
+        ':otp' => $otp,
+        ':reset_token' => $token,
+        ':expires_at' => $expiry
     ];
     $App->executeNonSelect($query, $params);
 

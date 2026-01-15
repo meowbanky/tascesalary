@@ -26,7 +26,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
 
     // Validate token and expiry
-    $query = "SELECT email FROM password_resets WHERE token = :token AND expiry > NOW()";
+    $query = "SELECT user_id FROM password_resets WHERE reset_token = :token AND expires_at > NOW()";
     $params = [':token' => $token];
     $result = $App->selectOne($query, $params);
 
@@ -39,25 +39,20 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
 
 
-    $email = $result['email'];
+    $staff_id = $result['user_id'];
     $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
 
-    // Check if the email exists in the employee table
-    $checkEmailQuery = "SELECT staff_id FROM employee WHERE EMAIL = :email LIMIT 1";
-    $checkEmailParams = [':email' => $email];
-    $existingEmployee = $App->selectOne($checkEmailQuery, $checkEmailParams);
-
-    $username = $existingEmployee['staff_id'];
     // Update the user's password in the database
-    $updateQuery = "UPDATE username SET password = :password WHERE username = :username";
+    // Note: username table uses 'staff_id' as primary/foreign key
+    $updateQuery = "UPDATE username SET password = :password WHERE staff_id = :staff_id";
     $updateParams = [
         ':password' => $hashedPassword,
-        ':username' => $username
+        ':staff_id' => $staff_id
     ];
     $App->executeNonSelect($updateQuery, $updateParams);
 
     // Delete the token
-    $deleteQuery = "DELETE FROM password_resets WHERE token = :token";
+    $deleteQuery = "DELETE FROM password_resets WHERE reset_token = :token";
     $deleteParams = [':token' => $token];
     $App->executeNonSelect($deleteQuery, $deleteParams);
 

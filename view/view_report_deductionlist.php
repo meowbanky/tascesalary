@@ -16,10 +16,12 @@ $lists = $App->selectDrop("SELECT tbl_earning_deduction.ed_id, tbl_earning_deduc
         <div class="flex justify-between">
             <h1 class="text-2xl font-bold mb-6 print:!block">Allowance/Deduction List</h1>
             <div>
-                <button id="export-pdf-button" class="ml-2 mb-2 px-4 py-2 bg-orange-500 text-white rounded-md shadow-sm hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500">
+                <button id="export-pdf-button"
+                    class="ml-2 mb-2 px-4 py-2 bg-orange-500 text-white rounded-md shadow-sm hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500">
                     <i class="fas fa-file-pdf"></i> Export PDF
                 </button>
-                <button id="download-excel-button" class="ml-2 mb-2 px-4 py-2 bg-green-600 text-white rounded-md shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                <button id="download-excel-button"
+                    class="ml-2 mb-2 px-4 py-2 bg-green-600 text-white rounded-md shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
                     <i class="fas fa-download"></i> Download Excel
                 </button>
             </div>
@@ -68,11 +70,13 @@ $lists = $App->selectDrop("SELECT tbl_earning_deduction.ed_id, tbl_earning_deduc
                 </div>
                 <div class="mb-4">
                     <label for="email" class="block text-sm font-medium text-gray-700">Email (Optional):</label>
-                    <input type="email" id="email" name="email" class="border border-gray-300 rounded-md p-2 w-full" placeholder="Enter email to send report (leave blank to download)">
+                    <input type="email" id="email" name="email" class="border border-gray-300 rounded-md p-2 w-full"
+                        placeholder="Enter email to send report (leave blank to download)">
                 </div>
                 <div class="mb-4">
                     <div class="flex justify-start m-2 gap-2">
-                        <button id="submit" type="button" class="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 focus:outline-none">Submit</button>
+                        <button id="submit" type="button"
+                            class="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 focus:outline-none">Submit</button>
                     </div>
                 </div>
                 <div id="table"></div>
@@ -86,98 +90,101 @@ $lists = $App->selectDrop("SELECT tbl_earning_deduction.ed_id, tbl_earning_deduc
 </div>
 
 <script>
-    $(document).ready(function() {
-        function setModalMaxHeight() {
-            var screenHeight = window.innerHeight;
-            var modalMaxHeight = screenHeight - 60;
-            $('.modal-content').css('max-height', '70vh');
+$(document).ready(function() {
+    function setModalMaxHeight() {
+        var screenHeight = window.innerHeight;
+        var modalMaxHeight = screenHeight - 60;
+        $('.modal-content').css('max-height', '70vh');
+    }
+
+    function validateEmail(email) {
+        if (!email) return true; // Empty email is valid (will trigger download)
+        var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return emailRegex.test(email);
+    }
+
+    function validateInputs() {
+        var period = $('#pay_period').val();
+        var list = $('#pay_list').val();
+        var email = $('#email').val();
+        if (!period) {
+            alert('Please select a pay period.');
+            $('#backdrop').hide();
+            return false;
         }
-
-        function validateEmail(email) {
-            if (!email) return true; // Empty email is valid (will trigger download)
-            var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            return emailRegex.test(email);
+        if (!list) {
+            alert('Please select an allowance or deduction.');
+            $('#backdrop').hide();
+            return false;
         }
-
-        function validateInputs() {
-            var period = $('#pay_period').val();
-            var list = $('#pay_list').val();
-            var email = $('#email').val();
-            if (!period) {
-                alert('Please select a pay period.');
-                $('#backdrop').hide();
-                return false;
-            }
-            if (!list) {
-                alert('Please select an allowance or deduction.');
-                $('#backdrop').hide();
-                return false;
-            }
-            if (email && !validateEmail(email)) {
-                alert('Please enter a valid email address or leave it blank.');
-                $('#backdrop').hide();
-                return false;
-            }
-            return true;
+        if (email && !validateEmail(email)) {
+            alert('Please enter a valid email address or leave it blank.');
+            $('#backdrop').hide();
+            return false;
         }
+        return true;
+    }
 
-        $('#submit').click(function(event) {
-            event.preventDefault();
-            if (!validateInputs()) return;
+    $('#submit').click(function(event) {
+        event.preventDefault();
+        if (!validateInputs()) return;
 
-            $('#backdrop').css('display', 'flex');
-            var $button = $(this);
-            $button.prop('disabled', true);
-            var selectedOption = $('#pay_list').find(':selected');
-            var dataType = selectedOption.data('type');
-            var list = selectedOption.val();
+        $('#backdrop').css('display', 'flex');
+        var $button = $(this);
+        $button.prop('disabled', true);
+        var selectedOption = $('#pay_list').find(':selected');
+        var dataType = selectedOption.data('type');
+        var list = selectedOption.val();
 
-            $.ajax({
-                type: 'POST',
-                url: 'libs/get_report_deductionlist.php',
-                data: {
-                    payperiod: $('#pay_period').val(),
-                    type: dataType,
-                    allow_id: list
-                },
-                success: function(response) {
-                    if (response === 'Select Deduction/allowance') {
-                        alert('Please select an allowance or deduction.');
-                        $('#backdrop').hide();
-                    } else {
-                        $('#table').html(response);
-                        $('#backdrop').hide();
-                    }
-                    $button.prop('disabled', false);
-                },
-                error: function(xhr, status, error) {
-                    console.error('AJAX Error:', error, xhr.responseText);
-                    alert('An error occurred while loading the report. Please try again.');
+        $.ajax({
+            type: 'POST',
+            url: 'libs/get_report_deductionlist.php',
+            data: {
+                payperiod: $('#pay_period').val(),
+                type: dataType,
+                allow_id: list
+            },
+            success: function(response) {
+                if (response === 'Select Deduction/allowance') {
+                    alert('Please select an allowance or deduction.');
                     $('#backdrop').hide();
-                    $button.prop('disabled', false);
+                } else {
+                    $('#table').html(response);
+                    $('#backdrop').hide();
                 }
-            });
-        });
-
-        $('#download-excel-button').click(function() {
-            if (!validateInputs()) return;
-            var selectedOption = $('#pay_list').find(':selected');
-            var dataType = selectedOption.data('type');
-            var list = selectedOption.val();
-            var period = $('#pay_period').val();
-            var email = $('#email').val();
-            window.location.href = 'libs/generate_excel_deductionlist.php?payperiod=' + period + '&allow_id=' + list + '&type=' + dataType + (email ? '&email=' + encodeURIComponent(email) : '');
-        });
-
-        $('#export-pdf-button').click(function() {
-            if (!validateInputs()) return;
-            var selectedOption = $('#pay_list').find(':selected');
-            var dataType = selectedOption.data('type');
-            var list = selectedOption.val();
-            var period = $('#pay_period').val();
-            var email = $('#email').val();
-            window.location.href = 'libs/generate_pdf_deductionlist.php?payperiod=' + period + '&allow_id=' + list + '&type=' + dataType + (email ? '&email=' + encodeURIComponent(email) : '');
+                $button.prop('disabled', false);
+            },
+            error: function(xhr, status, error) {
+                console.error('AJAX Error:', error, xhr.responseText);
+                alert('An error occurred while loading the report. Please try again.');
+                $('#backdrop').hide();
+                $button.prop('disabled', false);
+            }
         });
     });
-</script>
 
+    $('#download-excel-button').click(function() {
+        if (!validateInputs()) return;
+        var selectedOption = $('#pay_list').find(':selected');
+        var dataType = selectedOption.data('type');
+        var list = selectedOption.val();
+        var period = $('#pay_period').val();
+        var email = $('#email').val();
+        window.location.href = 'libs/generate_excel_deductionlist.php?payperiod=' + period +
+            '&allow_id=' + list + '&type=' + dataType + (email ? '&email=' + encodeURIComponent(email) :
+                '');
+    });
+
+    $('#export-pdf-button').click(function() {
+        if (!validateInputs()) return;
+        var selectedOption = $('#pay_list').find(':selected');
+        var dataType = selectedOption.data('type');
+        var list = selectedOption.val();
+        var period = $('#pay_period').val();
+        var email = $('#email').val();
+        window.location.href = 'libs/generate_pdf_deductionlist.php?payperiod=' + period +
+            '&allow_id=' + list + '&type=' + dataType + (email ? '&email=' + encodeURIComponent(email) :
+                '');
+    });
+});
+</script>

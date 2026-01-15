@@ -15,6 +15,7 @@ class AppConfig {
 
   // Debug Settings
   static const bool enableDebugging = true;
+  static const bool enableLogging = true;
 
   // App Settings
   static const String appName = 'TASCE Salary';

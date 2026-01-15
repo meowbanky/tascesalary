@@ -179,6 +179,11 @@
                         </a>
                     </li>
                     <li class="menu-item">
+                        <a href="report_staff_pension.php" class="menu-link">
+                            <span class="menu-text"><i class="mgc_idcard_line"></i>Staff Pension</span>
+                        </a>
+                    </li>
+                    <li class="menu-item">
                         <a href="log.php" class="menu-link">
                             <span class="menu-text"><i class="mgc_list_check_2_line"></i>Audit Log</span>
                         </a>

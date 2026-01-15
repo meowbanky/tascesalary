@@ -89,8 +89,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 <tr>
                     <td style='width: 20%;'><img src='$bgImageSrcR' style='width: 100px;' /></td>
                     <td style='width: 60%; text-align: center;'>
-                        <h2>" .  htmlspecialchars($businessName) . "</h2>  
-                        <h3>PAYSLIP FOR THE MONTH OF " . htmlspecialchars($desciption) . "</h3>
+                        <h2>" .  htmlspecialchars($businessName ?? '') . "</h2>  
+                        <h3>PAYSLIP FOR THE MONTH OF " . htmlspecialchars($desciption ?? '') . "</h3>
                     </td>
                     <td style='width: 20%; text-align: right;'><img src='$bgImageSrcL' style='width: 100px;' /></td>
                 </tr>
@@ -99,13 +99,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         <div class='section'>
             <h2>Employee Details</h2>
             <table class='details'>
-                <tr><td>Name:</td><td>" . htmlspecialchars($employeePayslip['NAME']) . "</td></tr>
-                <tr><td>Staff No.:</td><td>" . htmlspecialchars($employeePayslip['OGNO']) . "</td></tr>
-                <tr><td>Dept:</td><td>" . htmlspecialchars($employeePayslip['dept']) . "</td></tr>
-                <tr><td>Bank:</td><td>" . htmlspecialchars($employeePayslip['BNAME']) . "</td></tr>
-                <tr><td>Acct No.:</td><td>" . htmlspecialchars($employeePayslip['ACCTNO']) . "</td></tr>
-                <tr><td>Grade/Step:</td><td>" . htmlspecialchars($employeePayslip['GRADE']) . "/" . htmlspecialchars($employeePayslip['STEP']) . "</td></tr>
-                <tr><td>Salary Structure:</td><td>" . htmlspecialchars($employeePayslip['SalaryType']) . "</td></tr>
+                <tr><td>Name:</td><td>" . htmlspecialchars($employeePayslip['NAME'] ?? '') . "</td></tr>
+                <tr><td>Staff No.:</td><td>" . htmlspecialchars($employeePayslip['OGNO'] ?? '') . "</td></tr>
+                <tr><td>TIN:</td><td>" . htmlspecialchars($employeePayslip['TIN'] ?? '') . "</td></tr>
+                <tr><td>Dept:</td><td>" . htmlspecialchars($employeePayslip['dept'] ?? '') . "</td></tr>
+                <tr><td>Bank:</td><td>" . htmlspecialchars($employeePayslip['BNAME'] ?? '') . "</td></tr>
+                <tr><td>Acct No.:</td><td>" . htmlspecialchars($employeePayslip['ACCTNO'] ?? '') . "</td></tr>
+                <tr><td>Grade/Step:</td><td>" . htmlspecialchars($employeePayslip['GRADE'] ?? '') . "/" . htmlspecialchars($employeePayslip['STEP'] ?? '') . "</td></tr>
+                <tr><td>Salary Structure:</td><td>" . htmlspecialchars($employeePayslip['SalaryType'] ?? '') . "</td></tr>
             </table>
         </div>";
 

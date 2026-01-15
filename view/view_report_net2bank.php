@@ -103,6 +103,11 @@ $banks = $App->selectDrop("SELECT BANK_ID,BNAME FROM tbl_bank");
                 $('#backdrop').hide();
                 return false;
             }
+            if (!/^\d+$/.test(period)) {
+                alert('Invalid pay period selected.');
+                $('#backdrop').hide();
+                return false;
+            }
             if (!bank) {
                 alert('Please select a bank or "Select All Banks".');
                 $('#backdrop').hide();

@@ -4,6 +4,10 @@ import '../services/payroll_service.dart';
 import '../models/payslip.dart';
 import '../utils/number_formatter.dart';
 
+String formatCurrency(double amount) {
+  return NumberFormatter.formatMoney(amount);
+}
+
 class PayslipScreen extends StatefulWidget {
   final PayrollService payrollService;
 
@@ -87,7 +91,7 @@ class _PayslipScreenState extends State<PayslipScreen> {
 
     setState(() => isLoading = true);
     try {
-      final response = await _payrollService.getPayslip(periodId);
+      final response = await _payrollService.getPayslip(periodId: periodId);
       if (!mounted) return;
 
       if (response['success'] == true && response['data'] != null) {
