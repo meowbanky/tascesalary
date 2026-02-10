@@ -3,9 +3,12 @@ require_once 'libs/App.php';
 require_once 'vendor/autoload.php';
 $App = new App();
 
-// Replace with your client ID and client secret
-$clientID = '215488989335-d2afm4pgheil97akasq223v1mnq6k6i4.apps.googleusercontent.com';
-$clientSecret = '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';
+// Load environment variables
+require_once __DIR__ . '/config/env_loader.php';
+
+// Replace with your client ID from environment variables
+$clientID = getenv('GOOGLE_CLIENT_ID');
+$clientSecret = getenv('GOOGLE_CLIENT_SECRET');
 
 // Initialize Google Client
 $client = new Google_Client(['client_id' => $clientID]);  // Specify the CLIENT_ID of the app that accesses the backend
