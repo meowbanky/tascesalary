@@ -1,0 +1,103 @@
+# Environment Variables
+.env
+.env.local
+.env.*.local
+
+# Configuration Files with Sensitive Data
+config/config.php
+auth_api/config/config.php
+auth_api/config/Database.php
+
+# Database Files
+*.db
+*.sqlite
+*.sqlite3
+services/database.db
+
+# Backup Files
+backup/
+*.sql
+*.backup
+*.bak
+*.dump
+
+# API Keys and Secrets
+*.key
+*.pem
+*.jks
+*.p12
+*.pfx
+*.keystore
+auth_app/android/app/tasce.jks
+auth_app/android/app/*.jks
+auth_app/android/*.jks
+
+# Logs
+*.log
+logs/
+error_log
+
+# Session Files
+sessions/
+
+# Uploads (if containing sensitive data)
+uploads/
+public/uploads/
+
+# Temporary Files
+tmp/
+temp/
+*.tmp
+
+# Vendor (Composer dependencies - can be regenerated)
+vendor/
+
+# Node Modules
+node_modules/
+
+# Flutter/Dart
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+.pub-cache/
+.pub/
+build/
+
+# IDEs and editors
+.idea/
+.vscode/
+*.swp
+*.swo
+*.swn
+
+# System Files
+.DS_Store
+Thumbs.db
+.DS_Store?
+
+# Compiled Files
+*.com
+*.class
+*.dll
+*.exe
+*.o
+*.so
+
+# Package Files
+*.7z
+*.dmg
+*.gz
+*.iso
+*.jar
+*.rar
+*.tar
+*.zip
+
+# Composer
+composer.phar
+
+# Download directory (may contain sensitive files)
+download/*.apk
+download/*.zip
+download/version.json

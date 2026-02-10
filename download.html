@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>App Download</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        text-align: center;
+        padding: 20px;
+        margin: 0;
+        background-color: #f5f5f5;
+        color: #333;
+      }
+      .container {
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 20px;
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      }
+      .logo {
+        width: 100px;
+        height: 100px;
+        margin: 20px auto;
+      }
+      .button {
+        background: #007bff;
+        color: white;
+        padding: 15px 30px;
+        border-radius: 5px;
+        text-decoration: none;
+        display: inline-block;
+        margin: 20px 0;
+        transition: background-color 0.3s;
+      }
+      .button:hover {
+        background: #0056b3;
+      }
+      .loading {
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        border: 3px solid #f3f3f3;
+        border-radius: 50%;
+        border-top: 3px solid #007bff;
+        animation: spin 1s linear infinite;
+        margin-right: 10px;
+      }
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+      .message {
+        padding: 10px;
+        margin: 10px 0;
+        border-radius: 5px;
+      }
+      .info {
+        background-color: #e3f2fd;
+        color: #0d47a1;
+      }
+      .version-badge {
+        background: #28a745;
+        color: white;
+        padding: 5px 10px;
+        border-radius: 15px;
+        font-size: 0.9em;
+        margin: 10px 0;
+        display: inline-block;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>App Download</h1>
+      <div id="versionInfo" class="version-badge">
+        Version: <span id="currentVersion">Loading...</span>
+      </div>
+      <div id="loadingMessage">
+        <div class="loading"></div>
+        <p>Preparing your download...</p>
+      </div>
+      <div id="downloadMessage" class="message info" style="display: none">
+        Your download will begin automatically...
+      </div>
+      <a href="#" class="button" id="downloadButton"> Download APK </a>
+      <p id="deviceInfo" style="font-size: 0.9em; color: #666"></p>
+    </div>
+
+    <script>
+      window.onload = function () {
+        const loadingMessage = document.getElementById("loadingMessage");
+        const downloadMessage = document.getElementById("downloadMessage");
+        const deviceInfo = document.getElementById("deviceInfo");
+        const downloadButton = document.getElementById("downloadButton");
+        const versionSpan = document.getElementById("currentVersion");
+
+        const BASE_URL = "https://tascesalary.com.ng/download/";
+        let currentVersion = "";
+
+        function getDeviceInfo() {
+          const ua = navigator.userAgent.toLowerCase();
+          if (ua.includes("arm64") || ua.includes("aarch64")) {
+            return "arm64-v8a";
+          } else if (ua.includes("armeabi") || ua.includes("arm32")) {
+            return "armeabi-v7a";
+          } else if (ua.includes("x86_64") || ua.includes("amd64")) {
+            return "x86_64";
+          }
+          return "arm64-v8a"; // Default
+        }
+
+        function isAppleDevice() {
+          const ua = navigator.userAgent.toLowerCase();
+          return (
+            ua.includes("mac") ||
+            ua.includes("iphone") ||
+            ua.includes("ipad") ||
+            ua.includes("ipod") ||
+            navigator.platform.toLowerCase().includes("mac")
+          );
+        }
+
+        function startDownload(version, errorOccurred = false) {
+          const arch = getDeviceInfo();
+          const apkUrl = `${BASE_URL}tasce_${arch}_${version}.apk`;
+          downloadButton.href = apkUrl;
+
+          setTimeout(function () {
+            loadingMessage.style.display = "none";
+            downloadMessage.style.display = "block";
+
+            if (isAppleDevice()) {
+              window.location.href = "https://tasce-mobile.web.app/";
+              deviceInfo.textContent =
+                "Redirecting to web app (iOS device detected)";
+              downloadButton.style.display = "none";
+            } else {
+              window.location.href = apkUrl;
+              deviceInfo.textContent = `Downloading version ${version} for ${arch}...`;
+
+              if (!errorOccurred && currentVersion.changelog) {
+                const changelogDiv = document.createElement("div");
+                changelogDiv.className = "message info";
+                changelogDiv.innerHTML = `<p>${currentVersion.changelog}</p>`;
+                document.querySelector(".container").appendChild(changelogDiv);
+              }
+            }
+          }, 2000);
+        }
+
+        // First fetch version.json to get the current version
+        fetch("download/version.json")
+          .then((response) => response.json())
+          .then((data) => {
+            currentVersion = data;
+            versionSpan.textContent = data.version;
+            startDownload(data.version);
+          })
+          .catch((error) => {
+            console.error("Error fetching version.json:", error);
+            // Fetch a backup version.json from the server
+            fetch(`${BASE_URL}/version.json`)
+              .then((response) => response.json())
+              .then((data) => {
+                versionSpan.textContent = data.version;
+                startDownload(data.version, true);
+              })
+              .catch((finalError) => {
+                console.error(
+                  "Error fetching backup version.json:",
+                  finalError
+                );
+                deviceInfo.textContent =
+                  "Error loading version information. Please try again later.";
+                loadingMessage.style.display = "none";
+              });
+          });
+      };
+    </script>
+  </body>
+</html>

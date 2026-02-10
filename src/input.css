@@ -1,0 +1,11 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer utilities {
+    .double-border-dark-gray {
+        border-bottom-width: 2px;
+        border-bottom-color: #2d3748; /* this is the hex color for Tailwind's border-gray-800 */
+        border-bottom-style: double;
+    }
+}

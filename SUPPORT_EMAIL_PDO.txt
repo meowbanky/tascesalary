@@ -1,0 +1,38 @@
+Subject: Request to Enable PDO Extension for PHP 8.4 on Account
+
+Dear DoveServer Support Team,
+
+I am experiencing an issue with my PHP application where the PDO (PHP Data Objects) extension is not loading, even though it appears to be compiled with PHP.
+
+Account Details:
+- Domain: tascesalary.com.ng
+- Server: standard6.doveserver.com
+- PHP Version: 8.4.15 (currently active)
+
+Issue Description:
+The PDO extension and PDO MySQL driver are compiled with PHP (as shown in the configure command: --enable-pdo=shared and --with-pdo-mysql=shared,mysqlnd), but they are not enabled/loaded. When I check phpinfo(), I do not see PDO or pdo_mysql in the "Additional Modules" section, and my application throws the following error:
+
+"Fatal error: Uncaught Error: Class 'PDO' not found"
+
+This is preventing my application from connecting to the MySQL database.
+
+Requested Actions:
+1. Please enable the PDO extension for PHP 8.4 on my account
+2. Please enable the PDO MySQL driver (pdo_mysql) for PHP 8.4 on my account
+
+Technical Details:
+- Extension directory: /opt/alt/php84/usr/lib64/php/modules
+- Configuration scan directory: /opt/alt/php84/link/conf
+- Extension files that should be loaded: pdo.so and pdo_mysql.so
+
+I have already attempted to enable these via cPanel's MultiPHP INI Editor, but the extensions are not appearing as available options. The extensions are compiled but need to be activated in the PHP configuration.
+
+Could you please enable these extensions so that my application can function properly? 
+
+I have verified that the extension files exist in the modules directory but they need to be loaded in the PHP configuration.
+
+Thank you for your assistance.
+
+Best regards,
+Bankole Abiodun
+
