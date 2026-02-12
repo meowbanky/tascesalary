@@ -73,7 +73,8 @@ if (isset($_GET['month1']) && isset($_GET['month2'])) {
             COALESCE(t1.name, t2.name) AS name,
             COALESCE(t1.gross_salary, 0) AS gross_salary_month1,
             COALESCE(t2.gross_salary, 0) AS gross_salary_month2,
-            COALESCE(t2.gross_salary, 0) - COALESCE(t1.gross_salary, 0) AS salary_difference
+            COALESCE(t2.gross_salary, 0) - COALESCE(t1.gross_salary, 0) AS salary_difference,
+            vr.remark
         FROM
             (SELECT
                 sum(tbl_master.allow) AS gross_salary, 
@@ -104,6 +105,10 @@ if (isset($_GET['month1']) && isset($_GET['month2'])) {
                 tbl_master.staff_id) t2
         ON
             t1.staff_id = t2.staff_id
+        LEFT JOIN
+            variance_remarks vr ON t1.staff_id = vr.staff_id 
+            AND vr.month1_period_id = :month1 
+            AND vr.month2_period_id = :month2
         UNION
         SELECT
             COALESCE(t1.staff_id, t2.staff_id) AS staff_id,
@@ -111,7 +116,8 @@ if (isset($_GET['month1']) && isset($_GET['month2'])) {
             COALESCE(t1.name, t2.name) AS name,
             COALESCE(t1.gross_salary, 0) AS gross_salary_month1,
             COALESCE(t2.gross_salary, 0) AS gross_salary_month2,
-            COALESCE(t2.gross_salary, 0) - COALESCE(t1.gross_salary, 0) AS salary_difference
+            COALESCE(t2.gross_salary, 0) - COALESCE(t1.gross_salary, 0) AS salary_difference,
+            vr.remark
         FROM
             (SELECT
                 sum(tbl_master.allow) AS gross_salary, 
@@ -141,7 +147,11 @@ if (isset($_GET['month1']) && isset($_GET['month2'])) {
             GROUP BY
                 tbl_master.staff_id) t2
         ON
-            t1.staff_id = t2.staff_id");
+            t1.staff_id = t2.staff_id
+        LEFT JOIN
+            variance_remarks vr ON t2.staff_id = vr.staff_id 
+            AND vr.month1_period_id = :month1 
+            AND vr.month2_period_id = :month2");
         $stmt->execute([':month1' => $month1, ':month2' => $month2]);
         $salaries = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -155,6 +165,7 @@ if (isset($_GET['month1']) && isset($_GET['month2'])) {
                 'month1_gross' => $salary['gross_salary_month1'],
                 'month2_gross' => $salary['gross_salary_month2'],
                 'difference' => $salary['salary_difference'],
+                'remark' => $salary['remark'] ?? '',
             ];
             $totalDifference += floatval($salary['salary_difference']);
         }
@@ -217,11 +228,12 @@ if (isset($_GET['month1']) && isset($_GET['month2'])) {
     // Table header
     $pdf->SetFillColor(200, 200, 200);
     $pdf->SetFont('helvetica', 'B', 7);
-    $pdf->Cell(20, 8, 'Staff ID', 1, 0, 'L', 1);
-    $pdf->Cell(55, 8, 'Name', 1, 0, 'L', 1);
-    $pdf->Cell(30, 8, $month1Desc, 1, 0, 'R', 1);
-    $pdf->Cell(30, 8, $month2Desc, 1, 0, 'R', 1);
-    $pdf->Cell(40, 8, 'Difference', 1, 1, 'R', 1);
+    $pdf->Cell(15, 8, 'Staff ID', 1, 0, 'L', 1);
+    $pdf->Cell(35, 8, 'Name', 1, 0, 'L', 1);
+    $pdf->Cell(25, 8, $month1Desc, 1, 0, 'R', 1);
+    $pdf->Cell(25, 8, $month2Desc, 1, 0, 'R', 1);
+    $pdf->Cell(25, 8, 'Difference', 1, 0, 'R', 1);
+    $pdf->Cell(50, 8, 'Remark', 1, 1, 'L', 1);
 
     // Table data
     $pdf->SetFont('helvetica', '', 7);
@@ -232,33 +244,37 @@ if (isset($_GET['month1']) && isset($_GET['month2'])) {
             // Redraw table header on new page
             $pdf->SetFillColor(200, 200, 200);
             $pdf->SetFont('helvetica', 'B', 7);
-            $pdf->Cell(20, 8, 'Staff ID', 1, 0, 'L', 1);
-            $pdf->Cell(55, 8, 'Name', 1, 0, 'L', 1);
-            $pdf->Cell(30, 8, $month1Desc, 1, 0, 'R', 1);
-            $pdf->Cell(30, 8, $month2Desc, 1, 0, 'R', 1);
-            $pdf->Cell(40, 8, 'Difference', 1, 1, 'R', 1);
+            $pdf->Cell(15, 8, 'Staff ID', 1, 0, 'L', 1);
+            $pdf->Cell(35, 8, 'Name', 1, 0, 'L', 1);
+            $pdf->Cell(25, 8, $month1Desc, 1, 0, 'R', 1);
+            $pdf->Cell(25, 8, $month2Desc, 1, 0, 'R', 1);
+            $pdf->Cell(25, 8, 'Difference', 1, 0, 'R', 1);
+            $pdf->Cell(50, 8, 'Remark', 1, 1, 'L', 1);
             $pdf->SetFont('helvetica', '', 7);
         }
 
         // Calculate row height
-        $nameLines = $pdf->getNumLines($row['name'] ?? '', 55);
-        $rowHeight = max(6, 6 * $nameLines);
+        $nameLines = $pdf->getNumLines($row['name'] ?? '', 35);
+        $remarkLines = $pdf->getNumLines($row['remark'] ?? '', 50);
+        $rowHeight = max(6, 6 * $nameLines, 6 * $remarkLines);
 
-        $pdf->Cell(20, $rowHeight, $row['staff_id'] ?? '', 1, 0, 'L');
-        $pdf->MultiCell(55, $rowHeight, $row['name'] ?? '', 1, 'L', false, 0);
-        $pdf->Cell(30, $rowHeight, number_format($row['month1_gross'], 2), 1, 0, 'R');
-        $pdf->Cell(30, $rowHeight, number_format($row['month2_gross'], 2), 1, 0, 'R');
-        $pdf->Cell(40, $rowHeight, number_format($row['difference'], 2), 1, 1, 'R');
+        $pdf->Cell(15, $rowHeight, $row['staff_id'] ?? '', 1, 0, 'L');
+        $pdf->MultiCell(35, $rowHeight, $row['name'] ?? '', 1, 'L', false, 0);
+        $pdf->Cell(25, $rowHeight, number_format($row['month1_gross'], 2), 1, 0, 'R');
+        $pdf->Cell(25, $rowHeight, number_format($row['month2_gross'], 2), 1, 0, 'R');
+        $pdf->Cell(25, $rowHeight, number_format($row['difference'], 2), 1, 0, 'R');
+        $pdf->MultiCell(50, $rowHeight, $row['remark'] ?? '', 1, 'L', false, 1);
     }
 
     // Totals
     $pdf->SetFont('helvetica', 'B', 7);
     $pdf->SetX(15);
-    $pdf->Cell(20, 6, '', 1, 0, 'R');
-    $pdf->Cell(55, 6, 'Difference Total', 1, 0, 'R');
-    $pdf->Cell(30, 6, '', 1, 0, 'R');
-    $pdf->Cell(30, 6, '', 1, 0, 'R');
-    $pdf->Cell(40, 6, number_format($totalDifference, 2), 1, 1, 'R');
+    $pdf->Cell(15, 6, '', 1, 0, 'R');
+    $pdf->Cell(35, 6, 'Difference Total', 1, 0, 'R');
+    $pdf->Cell(25, 6, '', 1, 0, 'R');
+    $pdf->Cell(25, 6, '', 1, 0, 'R');
+    $pdf->Cell(25, 6, number_format($totalDifference, 2), 1, 0, 'R');
+    $pdf->Cell(50, 6, '', 1, 1, 'R');
 
     // Output the PDF
     $filename = 'Variance_Report_' . str_replace(' ', '_', $month1Desc) . '_vs_' . str_replace(' ', '_', $month2Desc) . '.pdf';

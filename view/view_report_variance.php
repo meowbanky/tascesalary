@@ -100,6 +100,7 @@ $selectPeriods = $App->selectDrop("SELECT concat(payperiods.description,'-',payp
                             <th class="py-2 px-4 border border-gray-300">Month 1 Gross Salary</th>
                             <th class="py-2 px-4 border border-gray-300">Month 2 Gross Salary</th>
                             <th class="py-2 px-4 border border-gray-300">Difference</th>
+                            <th class="py-2 px-4 border border-gray-300">Remark</th>
                         </tr>
                         </thead>
                         <tbody id="resultBody">
@@ -154,6 +155,49 @@ $selectPeriods = $App->selectDrop("SELECT concat(payperiods.description,'-',payp
         return true;
     }
 
+    // Function to save all remarks (including auto-generated ones)
+    function saveAllRemarks(callback) {
+        var month1 = $('#month1').val();
+        var month2 = $('#month2').val();
+        var remarksSaved = 0;
+        var totalRemarks = $('.variance-remark').length;
+        
+        if (totalRemarks === 0) {
+            if (callback) callback();
+            return;
+        }
+        
+        $('.variance-remark').each(function() {
+            var $textarea = $(this);
+            var staffId = $textarea.data('staff-id');
+            var remark = $textarea.val();
+            
+            $.ajax({
+                type: 'POST',
+                url: 'libs/save_variance_remark.php',
+                data: {
+                    staff_id: staffId,
+                    month1: month1,
+                    month2: month2,
+                    remark: remark
+                },
+                dataType: 'json',
+                success: function(response) {
+                    remarksSaved++;
+                    if (remarksSaved === totalRemarks && callback) {
+                        callback();
+                    }
+                },
+                error: function() {
+                    remarksSaved++;
+                    if (remarksSaved === totalRemarks && callback) {
+                        callback();
+                    }
+                }
+            });
+        });
+    }
+
         $('#varianceForm').submit(function(event) {
         event.preventDefault();
         if (!validateInputs()) return;
@@ -183,6 +227,7 @@ $selectPeriods = $App->selectDrop("SELECT concat(payperiods.description,'-',payp
                         <th class="py-2 px-4 border border-gray-300">${month1_description}</th>
                         <th class="py-2 px-4 border border-gray-300">${month2_description}</th>
                         <th class="py-2 px-4 border border-gray-300">Difference</th>
+                        <th class="py-2 px-4 border border-gray-300">Remark</th>
                     </tr>`;
         $('#resultHead').append(rowHead);
 
@@ -193,6 +238,13 @@ $selectPeriods = $App->selectDrop("SELECT concat(payperiods.description,'-',payp
                             <td class="py-2 px-4 border border-gray-300">${Number(item.month1_gross).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                             <td class="py-2 px-4 border border-gray-300">${Number(item.month2_gross).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
                             <td class="py-2 px-4 border border-gray-300">${Number(item.difference).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                            <td class="py-2 px-4 border border-gray-300">
+                                <textarea 
+                                    class="variance-remark w-full p-1 border border-gray-300 rounded" 
+                                    data-staff-id="${item.staff_id}" 
+                                    rows="2"
+                                    placeholder="Enter remark...">${item.remark || ''}</textarea>
+                            </td>
                         </tr>`;
         $('#resultBody').append(row);
         grandtotal += Number(item.difference);
@@ -200,14 +252,50 @@ $selectPeriods = $App->selectDrop("SELECT concat(payperiods.description,'-',payp
 
         var row2 = `
                     <tr class="bg-gray-50">
-                        <td colspan="4" class="py-2 px-4 border border-gray-300 font-bold">Difference Total</td>
+                        <td colspan="5" class="py-2 px-4 border border-gray-300 font-bold">Difference Total</td>
                         <td class="py-2 px-4 border border-gray-300 font-bold">${grandtotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                        <td class="py-2 px-4 border border-gray-300"></td>
                     </tr>`;
         $('#resultBody').append(row2);
 
         $('#result2').removeClass('hidden');
         $('#backdrop').hide();
         $button.prop('disabled', false);
+        
+        // Attach blur event to save remarks
+        $('.variance-remark').on('blur', function() {
+            var $textarea = $(this);
+            var staffId = $textarea.data('staff-id');
+            var remark = $textarea.val();
+            var month1 = $('#month1').val();
+            var month2 = $('#month2').val();
+            
+            $.ajax({
+                type: 'POST',
+                url: 'libs/save_variance_remark.php',
+                data: {
+                    staff_id: staffId,
+                    month1: month1,
+                    month2: month2,
+                    remark: remark
+                },
+                dataType: 'json',
+                success: function(response) {
+                    if (response.status === 'success') {
+                        $textarea.css('border-color', '#10b981');
+                        setTimeout(function() {
+                            $textarea.css('border-color', '');
+                        }, 1000);
+                    } else {
+                        alert('Error saving remark: ' + response.message);
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error saving remark:', error);
+                    alert('Failed to save remark. Please try again.');
+                }
+            });
+        });
     } else {
         alert('Error: ' + response.message);
         $('#backdrop').hide();
@@ -225,17 +313,50 @@ $selectPeriods = $App->selectDrop("SELECT concat(payperiods.description,'-',payp
 
         $('#download-excel-button').click(function() {
         if (!validateInputs()) return;
+        
+        var $button = $(this);
+        var originalText = $button.text();
+        
+        // Disable button and show loading state
+        $button.prop('disabled', true).text('Saving remarks...');
+        
         var month1 = $('#month1').val();
         var month2 = $('#month2').val();
-        window.location.href = 'libs/generate_excel_variance.php?month1=' + month1 + '&month2=' + month2;
+        
+        // Save all remarks before downloading
+        saveAllRemarks(function() {
+            $button.text('Generating Excel...');
+            window.location.href = 'libs/generate_excel_variance.php?month1=' + month1 + '&month2=' + month2;
+            
+            // Re-enable button after a delay
+            setTimeout(function() {
+                $button.prop('disabled', false).text(originalText);
+            }, 2000);
+        });
     });
 
         $('#export-pdf-button').click(function() {
         if (!validateInputs()) return;
+        
+        var $button = $(this);
+        var originalText = $button.text();
+        
+        // Disable button and show loading state
+        $button.prop('disabled', true).text('Saving remarks...');
+        
         var month1 = $('#month1').val();
         var month2 = $('#month2').val();
-        window.location.href = 'libs/generate_pdf_variance.php?month1=' + month1 + '&month2=' + month2;
+        
+        // Save all remarks before downloading
+        saveAllRemarks(function() {
+            $button.text('Generating PDF...');
+            window.location.href = 'libs/generate_pdf_variance.php?month1=' + month1 + '&month2=' + month2;
+            
+            // Re-enable button after a delay
+            setTimeout(function() {
+                $button.prop('disabled', false).text(originalText);
+            }, 2000);
+        });
     });
     });
 </script>
-

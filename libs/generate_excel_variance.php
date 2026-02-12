@@ -52,7 +52,8 @@ if (isset($_GET['month1']) && isset($_GET['month2'])) {
             COALESCE(t1.name, t2.name) AS name,
             COALESCE(t1.gross_salary, 0) AS gross_salary_month1,
             COALESCE(t2.gross_salary, 0) AS gross_salary_month2,
-            COALESCE(t2.gross_salary, 0) - COALESCE(t1.gross_salary, 0) AS salary_difference
+            COALESCE(t2.gross_salary, 0) - COALESCE(t1.gross_salary, 0) AS salary_difference,
+            vr.remark
         FROM
             (SELECT
                 sum(tbl_master.allow) AS gross_salary, 
@@ -83,6 +84,10 @@ if (isset($_GET['month1']) && isset($_GET['month2'])) {
                 tbl_master.staff_id) t2
         ON
             t1.staff_id = t2.staff_id
+        LEFT JOIN
+            variance_remarks vr ON t1.staff_id = vr.staff_id 
+            AND vr.month1_period_id = :month1 
+            AND vr.month2_period_id = :month2
         UNION
         SELECT
             COALESCE(t1.staff_id, t2.staff_id) AS staff_id,
@@ -90,7 +95,8 @@ if (isset($_GET['month1']) && isset($_GET['month2'])) {
             COALESCE(t1.name, t2.name) AS name,
             COALESCE(t1.gross_salary, 0) AS gross_salary_month1,
             COALESCE(t2.gross_salary, 0) AS gross_salary_month2,
-            COALESCE(t2.gross_salary, 0) - COALESCE(t1.gross_salary, 0) AS salary_difference
+            COALESCE(t2.gross_salary, 0) - COALESCE(t1.gross_salary, 0) AS salary_difference,
+            vr.remark
         FROM
             (SELECT
                 sum(tbl_master.allow) AS gross_salary, 
@@ -120,7 +126,11 @@ if (isset($_GET['month1']) && isset($_GET['month2'])) {
             GROUP BY
                 tbl_master.staff_id) t2
         ON
-            t1.staff_id = t2.staff_id");
+            t1.staff_id = t2.staff_id
+        LEFT JOIN
+            variance_remarks vr ON t2.staff_id = vr.staff_id 
+            AND vr.month1_period_id = :month1 
+            AND vr.month2_period_id = :month2");
         $stmt->execute([':month1' => $month1, ':month2' => $month2]);
         $salaries = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -134,6 +144,7 @@ if (isset($_GET['month1']) && isset($_GET['month2'])) {
                 'month1_gross' => $salary['gross_salary_month1'],
                 'month2_gross' => $salary['gross_salary_month2'],
                 'difference' => $salary['salary_difference'],
+                'remark' => $salary['remark'] ?? '',
             ];
             $totalDifference += floatval($salary['salary_difference']);
         }
@@ -154,33 +165,34 @@ if (isset($_GET['month1']) && isset($_GET['month2'])) {
 
     // Set column widths
     $sheet->getColumnDimension('A')->setWidth(20); // Staff ID
-    $sheet->getColumnDimension('B')->setWidth(55); // Name
-    $sheet->getColumnDimension('C')->setWidth(30); // Month 1 Gross Salary
-    $sheet->getColumnDimension('D')->setWidth(30); // Month 2 Gross Salary
-    $sheet->getColumnDimension('E')->setWidth(40); // Difference
+    $sheet->getColumnDimension('B')->setWidth(40); // Name
+    $sheet->getColumnDimension('C')->setWidth(25); // Month 1 Gross Salary
+    $sheet->getColumnDimension('D')->setWidth(25); // Month 2 Gross Salary
+    $sheet->getColumnDimension('E')->setWidth(25); // Difference
+    $sheet->getColumnDimension('F')->setWidth(50); // Remark
 
     // Header
-    $sheet->mergeCells('A1:E1');
+    $sheet->mergeCells('A1:F1');
     $sheet->setCellValue('A1', $businessName);
     $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(12);
     $sheet->getStyle('A1')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
-    $sheet->mergeCells('A2:E2');
+    $sheet->mergeCells('A2:F2');
     $sheet->setCellValue('A2', 'VARIANCE REPORT');
     $sheet->getStyle('A2')->getFont()->setBold(true);
     $sheet->getStyle('A2')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
-    $sheet->mergeCells('A3:E3');
+    $sheet->mergeCells('A3:F3');
     $sheet->setCellValue('A3', 'Period: ' . $month1Desc . ' vs ' . $month2Desc);
     $sheet->getStyle('A3')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
     // Table header
     $headerRow = 4;
-    $headers = ['Staff ID', 'Name', $month1Desc, $month2Desc, 'Difference'];
+    $headers = ['Staff ID', 'Name', $month1Desc, $month2Desc, 'Difference', 'Remark'];
     $sheet->fromArray($headers, NULL, 'A' . $headerRow);
-    $sheet->getStyle('A' . $headerRow . ':E' . $headerRow)->getFont()->setBold(true);
-    $sheet->getStyle('A' . $headerRow . ':E' . $headerRow)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('D3D3D3');
-    $sheet->getStyle('A' . $headerRow . ':E' . $headerRow)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+    $sheet->getStyle('A' . $headerRow . ':F' . $headerRow)->getFont()->setBold(true);
+    $sheet->getStyle('A' . $headerRow . ':F' . $headerRow)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('D3D3D3');
+    $sheet->getStyle('A' . $headerRow . ':F' . $headerRow)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
 
     // Table data
     $row = $headerRow + 1;
@@ -190,14 +202,16 @@ if (isset($_GET['month1']) && isset($_GET['month2'])) {
         $sheet->setCellValue('C' . $row, $item['month1_gross']);
         $sheet->setCellValue('D' . $row, $item['month2_gross']);
         $sheet->setCellValue('E' . $row, $item['difference']);
+        $sheet->setCellValue('F' . $row, $item['remark'] ?? '');
 
         // Apply text wrapping
         $sheet->getStyle('B' . $row)->getAlignment()->setWrapText(true);
+        $sheet->getStyle('F' . $row)->getAlignment()->setWrapText(true);
 
         // Apply number formatting
         $sheet->getStyle('C' . $row . ':E' . $row)->getNumberFormat()->setFormatCode('#,##0.00');
 
-        $sheet->getStyle('A' . $row . ':E' . $row)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+        $sheet->getStyle('A' . $row . ':F' . $row)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
         $row++;
     }
 
@@ -207,9 +221,10 @@ if (isset($_GET['month1']) && isset($_GET['month2'])) {
     $sheet->setCellValue('C' . $row, '');
     $sheet->setCellValue('D' . $row, '');
     $sheet->setCellValue('E' . $row, $totalDifference);
-    $sheet->getStyle('A' . $row . ':E' . $row)->getFont()->setBold(true);
+    $sheet->setCellValue('F' . $row, '');
+    $sheet->getStyle('A' . $row . ':F' . $row)->getFont()->setBold(true);
     $sheet->getStyle('E' . $row)->getNumberFormat()->setFormatCode('#,##0.00');
-    $sheet->getStyle('A' . $row . ':E' . $row)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+    $sheet->getStyle('A' . $row . ':F' . $row)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
 
     // Output the Excel file
     $filename = 'Variance_Report_' . str_replace(' ', '_', $month1Desc) . '_vs_' . str_replace(' ', '_', $month2Desc) . '.xlsx';
