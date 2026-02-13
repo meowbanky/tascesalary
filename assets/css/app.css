@@ -8935,3 +8935,17 @@ th.fc-day-header {
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 }
+/* Override Tailwind CSS reset for SweetAlert buttons */
+.swal2-popup button:not(.swal2-close) {
+  background-color: initial !important;
+  background-image: initial !important;
+}
+
+.swal2-confirm {
+  background-color: #3085d6 !important;
+}
+
+.swal2-cancel {
+  background-color: #d33 !important;
+}
+
