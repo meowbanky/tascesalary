@@ -16,7 +16,7 @@
                             <i class="mgc_search_line text-gray-400"></i>
                         </span>
                         <input type="text" id="searchStaff" class="w-full bg-white border border-gray-300 rounded-md py-2 pl-10 pr-10 text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Type name or staff ID...">
-                        <button type="button" id="clearSearch" class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-red-500 hidden">
+                        <button type="button" id="clearSearch" class="absolute inset-y-0 right-0 inline-flex items-center pr-3 text-gray-400 hover:text-red-500" style="display: none;">
                             <i class="mgc_close_line text-lg"></i>
                         </button>
                         <input type="hidden" id="selectedStaffId">
@@ -117,7 +117,7 @@ $(document).ready(function() {
             $("#selectedStaffInfo").removeClass('hidden');
 
             // Show Clear Button
-            $("#clearSearch").removeClass('hidden');
+            $("#clearSearch").show();
 
             $('#btnAddToList').prop('disabled', false);
         }
@@ -128,7 +128,7 @@ $(document).ready(function() {
         $("#searchStaff").val('');
         $("#selectedStaffId").val('');
         $("#selectedStaffInfo").addClass('hidden');
-        $(this).addClass('hidden');
+        $(this).hide();
         $('#btnAddToList').prop('disabled', true);
     });
 
