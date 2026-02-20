@@ -90,6 +90,8 @@ try {
         e.STEP,
         e.TIN,
         e.ACCTNO,
+        e.PFAACCTNO,
+        p.PFANAME,
         d.dept,
         b.BNAME,
         st.SalaryType
@@ -98,6 +100,7 @@ try {
         LEFT JOIN tbl_dept d ON e.DEPTCD = d.dept_id
         LEFT JOIN tbl_bank b ON e.BANK_ID = b.bank_ID
         LEFT JOIN tbl_salaryType st ON e.SALARY_TYPE = st.salaryType_id
+        LEFT JOIN tbl_pfa p ON e.PFACODE = p.PFACODE
     WHERE
         e.staff_id = :staff_id";
 
@@ -200,6 +203,7 @@ try {
     $pdf->Cell(95, 7, 'Dept: ' . $employee['dept'], 0, 0);
     $pdf->Cell(95, 7, 'Bank: ' . $employee['BNAME'], 0, 1);
     $pdf->Cell(95, 7, 'Acct No.: ' . $employee['ACCTNO'], 0, 0);
+    $pdf->Cell(95, 7, 'PFA/PEN: ' . ($employee['PFANAME'] ?? '') . ' / ' . ($employee['PFAACCTNO'] ?? ''), 0, 1);
     $pdf->Cell(95, 7, 'TIN: ' . $employee['TIN'], 0, 0);
     $pdf->Cell(95, 7, 'Grade/Step: ' . $employee['GRADE'] . '/' . $employee['STEP'], 0, 1);
     $pdf->Cell(190, 7, 'Salary Structure: ' . $employee['SalaryType'], 0, 1);
