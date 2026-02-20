@@ -220,7 +220,8 @@ FROM
 	MIN(master_staff.PFAACCTNO) AS PFAACCTNO, 
 	MIN(master_staff.OGNO) AS OGNO, 
 	MIN(tbl_pfa.PFANAME) AS PFANAME, 
-	MIN(master_staff.`NAME`) AS NAME
+	MIN(master_staff.`NAME`) AS NAME,
+	master_staff.PFACODE
 FROM
 	tbl_master
 	INNER JOIN

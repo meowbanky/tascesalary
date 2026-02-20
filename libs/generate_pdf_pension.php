@@ -142,40 +142,158 @@ if (isset($_GET['payperiod']) && isset($_GET['pfa'])) {
     $pdf->SetFont('helvetica', '', 7);
     $grossPension = 0.0;
     $sn = 1;
-    foreach ($getPensions as $getPension) {
-        // Calculate row height
-        $pfaWidth = ($pfa == -1) ? 130 : 35;
-        $nameLines = $pfa != -1 ? $pdf->getNumLines($getPension['NAME'] ?? '', 45) : 1;
-        $pfaLines = $pdf->getNumLines($getPension['PFANAME'] ?? '', $pfaWidth);
-        $rowHeight = max(6, 6 * max($nameLines, $pfaLines));
-
-        // Check for page break
-        if ($pdf->GetY() + $rowHeight > $pdf->getPageHeight() - 15) {
-            $pdf->AddPage();
-            $pdf->SetFillColor(200, 200, 200);
+    
+    if ($pfa == -1) {
+        // Group PFAs into categories
+        $regularPFAs = [];
+        $suspendedPFAs = [];
+        $othersPFAs = [];
+        
+        foreach ($getPensions as $getPension) {
+            $pfaCode = $getPension['PFACODE'] ?? null;
+            if ($pfaCode == 26) {
+                $suspendedPFAs[] = $getPension;
+            } elseif ($pfaCode == 21) {
+                $othersPFAs[] = $getPension;
+            } else {
+                $regularPFAs[] = $getPension;
+            }
+        }
+        
+        // Display Regular PFAs group
+        if (!empty($regularPFAs)) {
+            $pdf->SetFillColor(168, 213, 255);
+            $pdf->SetFont('helvetica', 'B', 9);
+            $pdf->Cell(175, 8, 'REGULAR PFAs', 1, 1, 'L', 1);
+            $pdf->SetFont('helvetica', '', 7);
+            
+            $regularTotal = 0;
+            foreach ($regularPFAs as $getPension) {
+                $pfaWidth = 130;
+                $pfaLines = $pdf->getNumLines($getPension['PFANAME'] ?? '', $pfaWidth);
+                $rowHeight = max(6, 6 * $pfaLines);
+                
+                if ($pdf->GetY() + $rowHeight > $pdf->getPageHeight() - 15) {
+                    $pdf->AddPage();
+                }
+                
+                $pdf->Cell(15, $rowHeight, $sn, 1, 0, 'L');
+                $pdf->MultiCell($pfaWidth, $rowHeight, $getPension['PFANAME'] ?? '', 1, 'L', false, 0);
+                $pdf->Cell(30, $rowHeight, number_format($getPension['deduc'], 2), 1, 1, 'R');
+                
+                $regularTotal += floatval($getPension['deduc']);
+                $grossPension += floatval($getPension['deduc']);
+                $sn++;
+            }
+            
+            // Subtotal row
+            $pdf->SetFillColor(232, 232, 232);
             $pdf->SetFont('helvetica', 'B', 7);
-            $pdf->Cell(15, 8, 'S/N', 1, 0, 'L', 1);
-            if ($pfa != -1) {
+            $pdf->Cell(145, 6, 'Subtotal', 1, 0, 'R', 1);
+            $pdf->Cell(30, 6, number_format($regularTotal, 2), 1, 1, 'R', 1);
+            $pdf->SetFont('helvetica', '', 7);
+        }
+        
+        // Display Suspended group
+        if (!empty($suspendedPFAs)) {
+            $pdf->SetFillColor(255, 235, 156);
+            $pdf->SetFont('helvetica', 'B', 9);
+            $pdf->Cell(175, 8, 'SUSPENDED', 1, 1, 'L', 1);
+            $pdf->SetFont('helvetica', '', 7);
+            
+            $suspendedTotal = 0;
+            foreach ($suspendedPFAs as $getPension) {
+                $pfaWidth = 130;
+                $pfaLines = $pdf->getNumLines($getPension['PFANAME'] ?? '', $pfaWidth);
+                $rowHeight = max(6, 6 * $pfaLines);
+                
+                if ($pdf->GetY() + $rowHeight > $pdf->getPageHeight() - 15) {
+                    $pdf->AddPage();
+                }
+                
+                $pdf->Cell(15, $rowHeight, $sn, 1, 0, 'L');
+                $pdf->MultiCell($pfaWidth, $rowHeight, $getPension['PFANAME'] ?? '', 1, 'L', false, 0);
+                $pdf->Cell(30, $rowHeight, number_format($getPension['deduc'], 2), 1, 1, 'R');
+                
+                $suspendedTotal += floatval($getPension['deduc']);
+                $grossPension += floatval($getPension['deduc']);
+                $sn++;
+            }
+            
+            // Subtotal row
+            $pdf->SetFillColor(232, 232, 232);
+            $pdf->SetFont('helvetica', 'B', 7);
+            $pdf->Cell(145, 6, 'Subtotal', 1, 0, 'R', 1);
+            $pdf->Cell(30, 6, number_format($suspendedTotal, 2), 1, 1, 'R', 1);
+            $pdf->SetFont('helvetica', '', 7);
+        }
+        
+        // Display Others group
+        if (!empty($othersPFAs)) {
+            $pdf->SetFillColor(255, 199, 206);
+            $pdf->SetFont('helvetica', 'B', 9);
+            $pdf->Cell(175, 8, 'OTHERS', 1, 1, 'L', 1);
+            $pdf->SetFont('helvetica', '', 7);
+            
+            $othersTotal = 0;
+            foreach ($othersPFAs as $getPension) {
+                $pfaWidth = 130;
+                $pfaLines = $pdf->getNumLines($getPension['PFANAME'] ?? '', $pfaWidth);
+                $rowHeight = max(6, 6 * $pfaLines);
+                
+                if ($pdf->GetY() + $rowHeight > $pdf->getPageHeight() - 15) {
+                    $pdf->AddPage();
+                }
+                
+                $pdf->Cell(15, $rowHeight, $sn, 1, 0, 'L');
+                $pdf->MultiCell($pfaWidth, $rowHeight, $getPension['PFANAME'] ?? '', 1, 'L', false, 0);
+                $pdf->Cell(30, $rowHeight, number_format($getPension['deduc'], 2), 1, 1, 'R');
+                
+                $othersTotal += floatval($getPension['deduc']);
+                $grossPension += floatval($getPension['deduc']);
+                $sn++;
+            }
+            
+            // Subtotal row
+            $pdf->SetFillColor(232, 232, 232);
+            $pdf->SetFont('helvetica', 'B', 7);
+            $pdf->Cell(145, 6, 'Subtotal', 1, 0, 'R', 1);
+            $pdf->Cell(30, 6, number_format($othersTotal, 2), 1, 1, 'R', 1);
+            $pdf->SetFont('helvetica', '', 7);
+        }
+    } else {
+        // Single PFA - display individual records
+        foreach ($getPensions as $getPension) {
+            // Calculate row height
+            $pfaWidth = 35;
+            $nameLines = $pdf->getNumLines($getPension['NAME'] ?? '', 45);
+            $pfaLines = $pdf->getNumLines($getPension['PFANAME'] ?? '', $pfaWidth);
+            $rowHeight = max(6, 6 * max($nameLines, $pfaLines));
+
+            // Check for page break
+            if ($pdf->GetY() + $rowHeight > $pdf->getPageHeight() - 15) {
+                $pdf->AddPage();
+                $pdf->SetFillColor(200, 200, 200);
+                $pdf->SetFont('helvetica', 'B', 7);
+                $pdf->Cell(15, 8, 'S/N', 1, 0, 'L', 1);
                 $pdf->Cell(20, 8, 'Staff No', 1, 0, 'L', 1);
                 $pdf->Cell(45, 8, 'Name', 1, 0, 'L', 1);
                 $pdf->Cell(30, 8, 'PFA PIN', 1, 0, 'L', 1);
+                $pdf->Cell($pfaWidth, 8, 'PFA', 1, 0, 'L', 1);
+                $pdf->Cell(30, 8, 'AMOUNT', 1, 1, 'R', 1);
+                $pdf->SetFont('helvetica', '', 7);
             }
-            $pdf->Cell($pfa == -1 ? 130 : 35, 8, 'PFA', 1, 0, 'L', 1);
-            $pdf->Cell(30, 8, 'AMOUNT', 1, 1, 'R', 1);
-            $pdf->SetFont('helvetica', '', 7);
-        }
 
-        $pdf->Cell(15, $rowHeight, $sn, 1, 0, 'L');
-        if ($pfa != -1) {
+            $pdf->Cell(15, $rowHeight, $sn, 1, 0, 'L');
             $pdf->Cell(20, $rowHeight, $getPension['OGNO'] ?? '', 1, 0, 'L');
             $pdf->MultiCell(45, $rowHeight, $getPension['NAME'] ?? '', 1, 'L', false, 0);
             $pdf->Cell(30, $rowHeight, $getPension['PFAACCTNO'] ?? '', 1, 0, 'L');
-        }
-        $pdf->MultiCell($pfaWidth, $rowHeight, $getPension['PFANAME'] ?? '', 1, 'L', false, 0);
-        $pdf->Cell(30, $rowHeight, number_format($getPension['deduc'], 2), 1, 1, 'R');
+            $pdf->MultiCell($pfaWidth, $rowHeight, $getPension['PFANAME'] ?? '', 1, 'L', false, 0);
+            $pdf->Cell(30, $rowHeight, number_format($getPension['deduc'], 2), 1, 1, 'R');
 
-        $grossPension += floatval($getPension['deduc']);
-        $sn++;
+            $grossPension += floatval($getPension['deduc']);
+            $sn++;
+        }
     }
 
     // Totals

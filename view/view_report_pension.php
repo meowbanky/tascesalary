@@ -42,7 +42,7 @@ $pfas = $App->selectDrop("SELECT PFACODE, PFANAME FROM tbl_pfa");
                     <label for="pfa" class="block text-sm font-medium text-gray-700">PFA:</label>
                     <select id="pfa" name="pfa" class="w-full mt-1 border border-gray-300 rounded-md p-2">
                         <option value="">Select PFA</option>
-                        <option value="-1">Select All PFA</option>
+                        <option value="-1">All PFA</option>
                         <?php
                         foreach ($pfas as $pfa) {
                             echo "<option value='" . $pfa['PFACODE'] . "'>" . $pfa['PFANAME'] . '</option>';
@@ -138,13 +138,16 @@ $pfas = $App->selectDrop("SELECT PFACODE, PFANAME FROM tbl_pfa");
                 },
                 success: function(response) {
                     $('#table').html(response);
-                    $('#table-search').DataTable({
-                        searching: false,
-                        pageLength: 100,
-                        lengthChange: false,
-                        ordering: true,
-                        dom: '<"flex items-center justify-between my-2"lf>t<"flex items-center justify-between"ip>',
-                    });
+                    // Only initialize DataTables for single PFA selection (not grouped view)
+                    if ($('#table-search').length) {
+                        $('#table-search').DataTable({
+                            searching: false,
+                            pageLength: 100,
+                            lengthChange: false,
+                            ordering: true,
+                            dom: '<"flex items-center justify-between my-2"lf>t<"flex items-center justify-between"ip>',
+                        });
+                    }
                     $('#backdrop').hide();
                     $button.prop('disabled', false);
                 },

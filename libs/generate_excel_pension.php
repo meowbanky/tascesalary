@@ -114,8 +114,128 @@ if (isset($_GET['payperiod']) && isset($_GET['pfa'])) {
     $row = $headerRow + 1;
     $grossPension = 0.0;
     $sn = 1;
-    foreach ($getPensions as $getPension) {
-        if ($pfa != -1) {
+    
+    if ($pfa == -1) {
+        // Group PFAs into categories
+        $regularPFAs = [];
+        $suspendedPFAs = [];
+        $othersPFAs = [];
+        
+        foreach ($getPensions as $getPension) {
+            $pfaCode = $getPension['PFACODE'] ?? null;
+            if ($pfaCode == 26) {
+                $suspendedPFAs[] = $getPension;
+            } elseif ($pfaCode == 21) {
+                $othersPFAs[] = $getPension;
+            } else {
+                $regularPFAs[] = $getPension;
+            }
+        }
+        
+        // Display Regular PFAs group
+        if (!empty($regularPFAs)) {
+            $sheet->setCellValue('A' . $row, 'REGULAR PFAs');
+            $sheet->mergeCells('A' . $row . ':C' . $row);
+            $sheet->getStyle('A' . $row . ':C' . $row)->getFont()->setBold(true)->setSize(12);
+            $sheet->getStyle('A' . $row . ':C' . $row)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('A8D5FF');
+            $sheet->getStyle('A' . $row . ':C' . $row)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+            $row++;
+            
+            $regularTotal = 0;
+            foreach ($regularPFAs as $getPension) {
+                $sheet->setCellValue('A' . $row, $sn);
+                $sheet->setCellValue('B' . $row, $getPension['PFANAME'] ?? '');
+                $sheet->setCellValue('C' . $row, $getPension['deduc']);
+                $sheet->getStyle('B' . $row)->getAlignment()->setWrapText(true);
+                $sheet->getStyle('C' . $row)->getNumberFormat()->setFormatCode('#,##0.00');
+                $sheet->getStyle('A' . $row . ':C' . $row)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+                $regularTotal += floatval($getPension['deduc']);
+                $grossPension += floatval($getPension['deduc']);
+                $sn++;
+                $row++;
+            }
+            
+            // Subtotal row
+            $sheet->setCellValue('A' . $row, 'Subtotal');
+            $sheet->mergeCells('A' . $row . ':B' . $row);
+            $sheet->setCellValue('C' . $row, $regularTotal);
+            $sheet->getStyle('A' . $row . ':C' . $row)->getFont()->setBold(true);
+            $sheet->getStyle('C' . $row)->getNumberFormat()->setFormatCode('#,##0.00');
+            $sheet->getStyle('A' . $row . ':C' . $row)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('E8E8E8');
+            $sheet->getStyle('A' . $row . ':C' . $row)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+            $row++;
+        }
+        
+        // Display Suspended group
+        if (!empty($suspendedPFAs)) {
+            $sheet->setCellValue('A' . $row, 'SUSPENDED');
+            $sheet->mergeCells('A' . $row . ':C' . $row);
+            $sheet->getStyle('A' . $row . ':C' . $row)->getFont()->setBold(true)->setSize(12);
+            $sheet->getStyle('A' . $row . ':C' . $row)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('FFEB9C');
+            $sheet->getStyle('A' . $row . ':C' . $row)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+            $row++;
+            
+            $suspendedTotal = 0;
+            foreach ($suspendedPFAs as $getPension) {
+                $sheet->setCellValue('A' . $row, $sn);
+                $sheet->setCellValue('B' . $row, $getPension['PFANAME'] ?? '');
+                $sheet->setCellValue('C' . $row, $getPension['deduc']);
+                $sheet->getStyle('B' . $row)->getAlignment()->setWrapText(true);
+                $sheet->getStyle('C' . $row)->getNumberFormat()->setFormatCode('#,##0.00');
+                $sheet->getStyle('A' . $row . ':C' . $row)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+                $suspendedTotal += floatval($getPension['deduc']);
+                $grossPension += floatval($getPension['deduc']);
+                $sn++;
+                $row++;
+            }
+            
+            // Subtotal row
+            $sheet->setCellValue('A' . $row, 'Subtotal');
+            $sheet->mergeCells('A' . $row . ':B' . $row);
+            $sheet->setCellValue('C' . $row, $suspendedTotal);
+            $sheet->getStyle('A' . $row . ':C' . $row)->getFont()->setBold(true);
+            $sheet->getStyle('C' . $row)->getNumberFormat()->setFormatCode('#,##0.00');
+            $sheet->getStyle('A' . $row . ':C' . $row)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('E8E8E8');
+            $sheet->getStyle('A' . $row . ':C' . $row)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+            $row++;
+        }
+        
+        // Display Others group
+        if (!empty($othersPFAs)) {
+            $sheet->setCellValue('A' . $row, 'OTHERS');
+            $sheet->mergeCells('A' . $row . ':C' . $row);
+            $sheet->getStyle('A' . $row . ':C' . $row)->getFont()->setBold(true)->setSize(12);
+            $sheet->getStyle('A' . $row . ':C' . $row)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('FFC7CE');
+            $sheet->getStyle('A' . $row . ':C' . $row)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+            $row++;
+            
+            $othersTotal = 0;
+            foreach ($othersPFAs as $getPension) {
+                $sheet->setCellValue('A' . $row, $sn);
+                $sheet->setCellValue('B' . $row, $getPension['PFANAME'] ?? '');
+                $sheet->setCellValue('C' . $row, $getPension['deduc']);
+                $sheet->getStyle('B' . $row)->getAlignment()->setWrapText(true);
+                $sheet->getStyle('C' . $row)->getNumberFormat()->setFormatCode('#,##0.00');
+                $sheet->getStyle('A' . $row . ':C' . $row)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+                $othersTotal += floatval($getPension['deduc']);
+                $grossPension += floatval($getPension['deduc']);
+                $sn++;
+                $row++;
+            }
+            
+            // Subtotal row
+            $sheet->setCellValue('A' . $row, 'Subtotal');
+            $sheet->mergeCells('A' . $row . ':B' . $row);
+            $sheet->setCellValue('C' . $row, $othersTotal);
+            $sheet->getStyle('A' . $row . ':C' . $row)->getFont()->setBold(true);
+            $sheet->getStyle('C' . $row)->getNumberFormat()->setFormatCode('#,##0.00');
+            $sheet->getStyle('A' . $row . ':C' . $row)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('E8E8E8');
+            $sheet->getStyle('A' . $row . ':C' . $row)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+            $row++;
+        }
+    } else {
+        // Single PFA - display individual records
+        foreach ($getPensions as $getPension) {
             $sheet->setCellValue('A' . $row, $sn);
             $sheet->setCellValue('B' . $row, $getPension['OGNO'] ?? '');
             $sheet->setCellValue('C' . $row, $getPension['NAME'] ?? '');
@@ -128,19 +248,10 @@ if (isset($_GET['payperiod']) && isset($_GET['pfa'])) {
             // Apply number formatting
             $sheet->getStyle('F' . $row)->getNumberFormat()->setFormatCode('#,##0.00');
             $sheet->getStyle('A' . $row . ':F' . $row)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
-        } else {
-            $sheet->setCellValue('A' . $row, $sn);
-            $sheet->setCellValue('B' . $row, $getPension['PFANAME'] ?? '');
-            $sheet->setCellValue('C' . $row, $getPension['deduc']);
-            // Apply text wrapping
-            $sheet->getStyle('B' . $row)->getAlignment()->setWrapText(true);
-            // Apply number formatting
-            $sheet->getStyle('C' . $row)->getNumberFormat()->setFormatCode('#,##0.00');
-            $sheet->getStyle('A' . $row . ':C' . $row)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+            $grossPension += floatval($getPension['deduc']);
+            $sn++;
+            $row++;
         }
-        $grossPension += floatval($getPension['deduc']);
-        $sn++;
-        $row++;
     }
 
     // Totals
