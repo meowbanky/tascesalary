@@ -107,6 +107,15 @@ $selectPeriods = $App->selectDrop("SELECT concat(payperiods.description,'-',payp
                         <!-- Results will be inserted here by JavaScript -->
                         </tbody>
                     </table>
+                    
+                    <div class="flex justify-end mt-4">
+                        <button id="export-pdf-button-bottom" class="ml-2 px-4 py-2 bg-orange-500 text-white rounded-md shadow-sm hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500">
+                            <i class="fas fa-file-pdf"></i> Export PDF
+                        </button>
+                        <button id="download-excel-button-bottom" class="ml-2 px-4 py-2 bg-green-600 text-white rounded-md shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                            <i class="fas fa-download"></i> Download Excel
+                        </button>
+                    </div>
 
             </div>
         </div>
@@ -311,7 +320,7 @@ $selectPeriods = $App->selectDrop("SELECT concat(payperiods.description,'-',payp
     });
     });
 
-        $('#download-excel-button').click(function() {
+    $('#download-excel-button, #download-excel-button-bottom').click(function() {
         if (!validateInputs()) return;
         
         var $button = $(this);
@@ -325,17 +334,17 @@ $selectPeriods = $App->selectDrop("SELECT concat(payperiods.description,'-',payp
         
         // Save all remarks before downloading
         saveAllRemarks(function() {
-            $button.text('Generating Excel...');
+            $button.html('<i class="fas fa-download"></i> Generating Excel...');
             window.location.href = 'libs/generate_excel_variance.php?month1=' + month1 + '&month2=' + month2;
             
             // Re-enable button after a delay
             setTimeout(function() {
-                $button.prop('disabled', false).text(originalText);
+                $button.prop('disabled', false).html('<i class="fas fa-download"></i> Download Excel');
             }, 2000);
         });
     });
 
-        $('#export-pdf-button').click(function() {
+    $('#export-pdf-button, #export-pdf-button-bottom').click(function() {
         if (!validateInputs()) return;
         
         var $button = $(this);
@@ -349,12 +358,12 @@ $selectPeriods = $App->selectDrop("SELECT concat(payperiods.description,'-',payp
         
         // Save all remarks before downloading
         saveAllRemarks(function() {
-            $button.text('Generating PDF...');
+            $button.html('<i class="fas fa-file-pdf"></i> Generating PDF...');
             window.location.href = 'libs/generate_pdf_variance.php?month1=' + month1 + '&month2=' + month2;
             
             // Re-enable button after a delay
             setTimeout(function() {
-                $button.prop('disabled', false).text(originalText);
+                $button.prop('disabled', false).html('<i class="fas fa-file-pdf"></i> Export PDF');
             }, 2000);
         });
     });
