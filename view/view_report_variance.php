@@ -33,7 +33,7 @@ $selectPeriods = $App->selectDrop("SELECT concat(payperiods.description,'-',payp
 
                 <div>
                     <button id="export-pdf-button" class="ml-2 mb-2 px-4 py-2 bg-orange-500 text-white rounded-md shadow-sm hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500">
-                        <i class="fas fa-file-pdf"></i> Export PDF
+                        <i class="fas fa-file-pdf"></i> Download PDF
                     </button>
                     <button id="download-excel-button" class="ml-2 mb-2 px-4 py-2 bg-green-600 text-white rounded-md shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
                         <i class="fas fa-download"></i> Download Excel
@@ -110,10 +110,7 @@ $selectPeriods = $App->selectDrop("SELECT concat(payperiods.description,'-',payp
                     
                     <div class="flex justify-end mt-4">
                         <button id="export-pdf-button-bottom" class="ml-2 px-4 py-2 bg-orange-500 text-white rounded-md shadow-sm hover:bg-orange-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500">
-                            <i class="fas fa-file-pdf"></i> Export PDF
-                        </button>
-                        <button id="download-excel-button-bottom" class="ml-2 px-4 py-2 bg-green-600 text-white rounded-md shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
-                            <i class="fas fa-download"></i> Download Excel
+                            <i class="fas fa-file-pdf"></i> Download PDF
                         </button>
                     </div>
 
@@ -320,7 +317,7 @@ $selectPeriods = $App->selectDrop("SELECT concat(payperiods.description,'-',payp
     });
     });
 
-    $('#download-excel-button, #download-excel-button-bottom').click(function() {
+    $('#download-excel-button').click(function() {
         if (!validateInputs()) return;
         
         var $button = $(this);
@@ -363,7 +360,7 @@ $selectPeriods = $App->selectDrop("SELECT concat(payperiods.description,'-',payp
             
             // Re-enable button after a delay
             setTimeout(function() {
-                $button.prop('disabled', false).html('<i class="fas fa-file-pdf"></i> Export PDF');
+                $button.prop('disabled', false).html('<i class="fas fa-file-pdf"></i> Download PDF');
             }, 2000);
         });
     });
