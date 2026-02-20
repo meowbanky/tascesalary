@@ -109,6 +109,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 <span class="font-semibold">Acct No.:</span> <span><?php echo $employeePayslip['ACCTNO']; ?></span>
             </div>
             <div class="flex justify-between mb-1">
+                <span class="font-semibold">PFA/PEN:</span> <span><?php echo ($employeePayslip['PFANAME'] ?? '') . ' / ' . ($employeePayslip['PFAACCTNO'] ?? ''); ?></span>
+            </div>
+            <div class="flex justify-between mb-1">
                 <span class="font-semibold">GRADE/STEP:</span>
                 <span><?php echo $employeePayslip['GRADE'] ?>/<?php echo $employeePayslip['STEP'] ?></span>
             </div>

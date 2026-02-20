@@ -37,8 +37,13 @@ if (isset($_GET['payperiod']) && isset($_GET['pfa'])) {
     $periodDesc = $periodDescs['period'];
 
     // Get PFA name
-    $pfaName = ($pfa == -1) ? 'All PFAs' : $App->selectDrop("SELECT PFANAME FROM tbl_pfa WHERE PFACODE = :pfa", ['pfa' => $pfa])[0]['PFANAME'] ?? 'Unknown PFA';
-    if ($pfa != -1 && $pfaName == 'Unknown PFA') {
+    $pfaName = 'All PFAs';
+    if ($pfa == -1) {
+        $pfaName = 'PFA Analysis';
+    } elseif ($pfa != -2) {
+        $pfaName = $App->selectDrop("SELECT PFANAME FROM tbl_pfa WHERE PFACODE = :pfa", ['pfa' => $pfa])[0]['PFANAME'] ?? 'Unknown PFA';
+    }
+    if ($pfa != -1 && $pfa != -2 && $pfaName == 'Unknown PFA') {
         error_log('Invalid PFA code: ' . $pfa);
         die('Error: Invalid PFA selection.');
     }

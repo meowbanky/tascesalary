@@ -42,7 +42,8 @@ $pfas = $App->selectDrop("SELECT PFACODE, PFANAME FROM tbl_pfa");
                     <label for="pfa" class="block text-sm font-medium text-gray-700">PFA:</label>
                     <select id="pfa" name="pfa" class="w-full mt-1 border border-gray-300 rounded-md p-2">
                         <option value="">Select PFA</option>
-                        <option value="-1">All PFA</option>
+                        <option value="-1">PFA Analysis</option>
+                        <option value="-2">All PFAs</option>
                         <?php
                         foreach ($pfas as $pfa) {
                             echo "<option value='" . $pfa['PFACODE'] . "'>" . $pfa['PFANAME'] . '</option>';

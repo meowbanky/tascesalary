@@ -53,12 +53,15 @@ try {
 	tbl_bank.BNAME, 
 	master_staff.`NAME`, 
 	master_staff.OGNO, 
-	master_staff.ACCTNO, 
+	master_staff.ACCTNO,
+	master_staff.PFAACCTNO,
+	tbl_pfa.PFANAME,
 	master_staff.GRADE, 
 	master_staff.STEP,employee.TIN,
 	tbl_dept.dept,tbl_salaryType.SalaryType
 FROM
 	master_staff
+	LEFT JOIN tbl_pfa ON master_staff.PFACODE = tbl_pfa.PFACODE
 	INNER JOIN
 	employee
 	ON 
@@ -145,6 +148,8 @@ FROM
                 'grade_step' => $employee['GRADE'].'/'.$employee['STEP'],
                 'bank' => $employee['BNAME'],
                 'accountno' => $employee['ACCTNO'],
+                'pen' => $employee['PFAACCTNO'],
+                'pfa' => $employee['PFANAME'],
                 'salarytype' => $employee['SalaryType'],
                 'tin' => $employee['TIN'],
             ],

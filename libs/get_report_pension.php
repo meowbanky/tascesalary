@@ -28,8 +28,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
     }
 
-    $pfaName = 'All PFA';
-    if ($pfa != -1) {
+    $pfaName = 'All PFAs';
+    if ($pfa == -1) {
+        $pfaName = 'PFA Analysis';
+    } elseif ($pfa != -2) {
         $pfaRow = $App->getPfaDetails($pfa);
         if ($pfaRow && isset($pfaRow['PFANAME'])) {
             $pfaName = $pfaRow['PFANAME'];

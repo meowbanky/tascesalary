@@ -240,6 +240,11 @@ FROM
             $sql.=" where tbl_master.period  = :period AND master_staff.period = :period2 AND tbl_master.allow_id= 25 GROUP BY master_staff.PFACODE ORDER BY tbl_pfa.PFACODE";
             $param = [':period' => $period,
                 ':period2' => $period];
+        }elseif($pfacode == -2){
+            $sql.=" where tbl_master.period  = :period AND master_staff.period = :period2 AND tbl_master.allow_id= 25
+             GROUP BY master_staff.staff_id";
+            $param = [':period' => $period,
+                ':period2' => $period];
         }else{
             $sql.=" where tbl_master.period  = :period AND master_staff.period = :period2 AND tbl_master.allow_id= 25 AND master_staff.PFACODE = :pfacode
              GROUP BY master_staff.staff_id";
@@ -919,6 +924,8 @@ public function insertPeriod($description,$periodYear){
 	tbl_dept.dept, 
 	tbl_bank.BNAME, 
 	master_staff.ACCTNO, 
+	master_staff.PFAACCTNO, 
+	tbl_pfa.PFANAME, 
 	master_staff.GRADE, 
 	master_staff.STEP, 
 	IFNULL(tbl_salaryType.SalaryType,'') AS SalaryType
@@ -937,6 +944,7 @@ FROM
 	ON 
 		master_staff.SALARY_TYPE = tbl_salaryType.salaryType_id
     LEFT JOIN employee ON employee.staff_id = master_staff.staff_id
+    LEFT JOIN tbl_pfa ON master_staff.PFACODE = tbl_pfa.PFACODE
         WHERE master_staff.staff_id = :staff_id and master_staff.period =:period";
 
 
