@@ -19,8 +19,8 @@ if (isset($_GET['period'])) {
     // Build the data similarly to the AJAX endpoint
     try {
         $summarySql = "SELECT 
-                        SUM(gross) AS total_gross,
-                        SUM(tax) AS total_tax
+                        SUM(allow) AS total_gross,
+                        (SELECT SUM(deduc) FROM tbl_master WHERE period = :period AND allow_id = 24) AS total_tax
                        FROM tbl_master 
                        WHERE period = :period";
         $summary = $app->selectOne($summarySql, [':period' => $period]);

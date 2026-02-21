@@ -1,6 +1,5 @@
 <?php
-// App class is already initialized in report_analysis.php container
-?>
+
 
 $selectPeriods = $App->selectDrop("SELECT concat(payperiods.description,'-',payperiods.periodYear) as period, 
                                         payperiods.periodId FROM payperiods ORDER BY periodId DESC ");

@@ -13,9 +13,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['period'])) {
 
     try {
         // Query to get overall Gross and Tax for the period
+        // tbl_master.allow represents the gross earnings
+        // tbl_master.deduc where allow_id = 24 represents TAX
         $summarySql = "SELECT 
-                        SUM(gross) AS total_gross,
-                        SUM(tax) AS total_tax
+                        SUM(allow) AS total_gross,
+                        (SELECT SUM(deduc) FROM tbl_master WHERE period = :period AND allow_id = 24) AS total_tax
                        FROM tbl_master 
                        WHERE period = :period";
         $summary = $app->selectOne($summarySql, [':period' => $period]);
