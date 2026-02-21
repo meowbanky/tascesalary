@@ -291,20 +291,16 @@ if (isset($_GET['month1']) && isset($_GET['month2'])) {
     
     $pdf->SetFont('helvetica', '', 10);
     
-    // Preparer
-    $pdf->Cell(60, 8, 'Prepared By:', 0, 0, 'L');
-    $pdf->Cell(70, 8, 'Auditor:', 0, 0, 'L');
-    $pdf->Cell(60, 8, 'Authorized By:', 0, 1, 'L');
+    $pdf->Cell(90, 8, 'H.O.D Salaries:', 0, 0, 'L');
+    $pdf->Cell(90, 8, 'Internal Auditor:', 0, 1, 'L');
     
     $pdf->Ln(10);
     
-    $pdf->Cell(60, 5, '______________________', 0, 0, 'L');
-    $pdf->Cell(70, 5, '______________________', 0, 0, 'L');
-    $pdf->Cell(60, 5, '______________________', 0, 1, 'L');
+    $pdf->Cell(90, 5, '______________________', 0, 0, 'L');
+    $pdf->Cell(90, 5, '______________________', 0, 1, 'L');
     
-    $pdf->Cell(60, 6, 'Name / Signature / Date', 0, 0, 'L');
-    $pdf->Cell(70, 6, 'Name / Signature / Date', 0, 0, 'L');
-    $pdf->Cell(60, 6, 'Name / Signature / Date', 0, 1, 'L');
+    $pdf->Cell(90, 6, 'Name / Signature / Date', 0, 0, 'L');
+    $pdf->Cell(90, 6, 'Name / Signature / Date', 0, 1, 'L');
 
     // Output the PDF
     $filename = 'Variance_Report_' . str_replace(' ', '_', $month1Desc) . '_vs_' . str_replace(' ', '_', $month2Desc) . '.pdf';
