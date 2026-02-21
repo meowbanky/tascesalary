@@ -91,6 +91,10 @@ if (isset($_GET['period'])) {
 
         $businessName = htmlspecialchars(strtoupper($_SESSION['businessname']));
 
+        $formatted_gross = fmt($gross);
+        $formatted_tax = fmt($tax);
+        $formatted_net = fmt($gross_after_tax);
+
         $html = <<<EOD
         <style>
             table { border-collapse: collapse; width: 100%; }
@@ -111,28 +115,28 @@ if (isset($_GET['period'])) {
             <tr>
                 <td class="bold uppercase" width="60%">GROSS</td>
                 <td width="20%"></td>
-                <td class="bold right" width="20%">{$this->fmt($gross)}</td>
+                <td class="bold right" width="20%">{$formatted_gross}</td>
             </tr>
             <tr>
                 <td class="bold uppercase">TAX</td>
                 <td></td>
-                <td class="bold right" style="text-decoration: underline;">{$this->fmt($tax)}</td>
+                <td class="bold right" style="text-decoration: underline;">{$formatted_tax}</td>
             </tr>
             <tr>
                 <td class="bold uppercase">GROSS AFTER TAX</td>
                 <td></td>
-                <td class="bold right" style="border-bottom: 3px double black;">{$this->fmt($gross_after_tax)}</td>
+                <td class="bold right" style="border-bottom: 3px double black;">{$formatted_net}</td>
             </tr>
             <tr>
                 <td colspan="3" style="border: none; padding: 5px;"></td>
             </tr>
             <tr>
                 <td colspan="2" class="bold uppercase">BREAKDOWN ANALYSIS OF GROSS SALARY AFTER TAX</td>
-                <td class="bold right">{$this->fmt($gross_after_tax)}</td>
+                <td class="bold right">{$formatted_net}</td>
             </tr>
             <tr>
                 <td class="bold uppercase">NET PAY</td>
-                <td class="bold right">{$this->fmt($gross_after_tax)}</td>
+                <td class="bold right">{$formatted_net}</td>
                 <td></td>
             </tr>
 EOD;
@@ -186,21 +190,6 @@ EOD;
             </tr>
         </table>
 EOD;
-
-        // Use a wrapper to be able to safely use inline methods inside HEREDOC
-        function compile_html($html, $gross, $tax, $gross_after_tax) {
-            $rep1 = '$this->fmt($gross)';
-            $rep2 = '$this->fmt($tax)';
-            $rep3 = '$this->fmt($gross_after_tax)';
-
-            $html = str_replace($rep1, fmt($gross), $html);
-            $html = str_replace($rep2, fmt($tax), $html);
-            $html = str_replace($rep3, fmt($gross_after_tax), $html);
-
-            return $html;
-        }
-        
-        $html = compile_html($html, $gross, $tax, $gross_after_tax);
 
         $pdf->writeHTML($html, true, false, true, false, '');
 
