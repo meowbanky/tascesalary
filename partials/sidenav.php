@@ -179,6 +179,11 @@
                         </a>
                     </li>
                     <li class="menu-item">
+                        <a href="report_analysis.php" class="menu-link">
+                            <span class="menu-text"><i class="mgc_chart_bar_line"></i>Subvention Analysis</span>
+                        </a>
+                    </li>
+                    <li class="menu-item">
                         <a href="report_pension.php" class="menu-link">
                             <span class="menu-text"><i class="mgc_home_4_line"></i>Pension</span>
                         </a>
