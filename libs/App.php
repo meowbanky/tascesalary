@@ -237,17 +237,17 @@ FROM
 	ON 
 		master_staff.PFACODE = tbl_pfa.PFACODE";
         if($pfacode == -1){
-            $sql.=" where tbl_master.period  = :period AND master_staff.period = :period2 AND tbl_master.allow_id= 25 GROUP BY master_staff.PFACODE ORDER BY tbl_pfa.PFACODE";
+            $sql.=" where tbl_master.period  = :period AND master_staff.period = :period2 AND tbl_master.allow_id= 25 GROUP BY master_staff.PFACODE ORDER BY tbl_pfa.PFANAME ASC, master_staff.NAME ASC";
             $param = [':period' => $period,
                 ':period2' => $period];
         }elseif($pfacode == -2){
             $sql.=" where tbl_master.period  = :period AND master_staff.period = :period2 AND tbl_master.allow_id= 25
-             GROUP BY master_staff.staff_id";
+             GROUP BY master_staff.staff_id ORDER BY tbl_pfa.PFANAME ASC, master_staff.NAME ASC";
             $param = [':period' => $period,
                 ':period2' => $period];
         }else{
             $sql.=" where tbl_master.period  = :period AND master_staff.period = :period2 AND tbl_master.allow_id= 25 AND master_staff.PFACODE = :pfacode
-             GROUP BY master_staff.staff_id";
+             GROUP BY master_staff.staff_id ORDER BY tbl_pfa.PFANAME ASC, master_staff.NAME ASC";
             $param = [':period' => $period,
                 ':period2' => $period,
                 ':pfacode' => $pfacode];
