@@ -43,17 +43,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['period'])) {
         
         $deductionsData = $app->selectAll($deductionsSql, [':period' => $period]);
 
+        // Get retained IDs dynamically from the database
+        $retainedIdsData = $app->selectAll("SELECT ed_id FROM tbl_earning_deduction WHERE is_retained = 1", []);
+        $retainedIds = array_map(function($item) { return (int)$item['ed_id']; }, $retainedIdsData);
+
         $main_deductions = [];
         $retained_deductions = [];
         $total_main_deductions = 0;
         $total_retained_deductions = 0;
-
-        // Specific IDs to be listed in the bottom "Retained" section
-        $retainedIds = [
-            28, // COLL. FEE
-            34, // SALARY ADV.
-            30  // RENT
-        ];
 
         foreach ($deductionsData as $d) {
             $amount = (float)$d['total_amount'];

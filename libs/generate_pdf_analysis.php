@@ -47,12 +47,14 @@ if (isset($_GET['period'])) {
         
         $deductionsData = $app->selectAll($deductionsSql, [':period' => $period]);
 
+        // Get retained IDs dynamically from the database
+        $retainedIdsData = $app->selectAll("SELECT ed_id FROM tbl_earning_deduction WHERE is_retained = 1", []);
+        $retainedIds = array_map(function($item) { return (int)$item['ed_id']; }, $retainedIdsData);
+
         $main_deductions = [];
         $retained_deductions = [];
         $total_main_deductions = 0;
         $total_retained_deductions = 0;
-
-        $retainedIds = [28, 34, 30];
 
         foreach ($deductionsData as $d) {
             $amount = (float)$d['total_amount'];

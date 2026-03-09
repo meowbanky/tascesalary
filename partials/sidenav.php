@@ -108,6 +108,11 @@
                         </a>
                     </li>
                     <li class="menu-item">
+                        <a href="earning_deduction.php" class="menu-link">
+                            <span class="menu-text"><i class="mgc_transfer_line"></i>Earnings/Deductions</span>
+                        </a>
+                    </li>
+                    <li class="menu-item">
                         <a href="call_backup.php" class="menu-link">
                             <span class="menu-text"><i class="mgc_database_line"></i>Database Backup</span>
                         </a>

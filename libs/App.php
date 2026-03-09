@@ -591,6 +591,33 @@ public function create_user($staff_id, $username, $password, $role_id, $deleted=
 
     }
 
+    public function create_earning_deduction($ed, $type, $is_retained, $ed_id = null)
+    {
+        if ($ed_id == null) {
+            $query = "INSERT INTO tbl_earning_deduction (ed, type, is_retained) VALUES (:ed, :type, :is_retained)";
+            $params = [':ed' => $ed, ':type' => $type, ':is_retained' => $is_retained];
+        } else {
+            $query = "UPDATE tbl_earning_deduction SET ed = :ed, type = :type, is_retained = :is_retained WHERE ed_id = :ed_id";
+            $params = [':ed' => $ed, ':type' => $type, ':is_retained' => $is_retained, ':ed_id' => $ed_id];
+        }
+
+        $result = $this->executeNonSelect($query, $params);
+        $this->log('INSERT/UPDATE', 'tbl_earning_deduction', $params, $_SESSION['SESS_MEMBER_ID']);
+        return $result;
+    }
+
+    public function get_earning_deductions($search = null)
+    {
+        $query = "SELECT * FROM tbl_earning_deduction";
+        $params = [];
+        if ($search !== null) {
+            $query .= " WHERE ed LIKE :search OR edDesc LIKE :search";
+            $params = [':search' => "%$search%"];
+        }
+        $query .= " ORDER BY ed ASC";
+        return $this->selectAll($query, $params);
+    }
+
     public function create_dept($dept, $dept_auto=null)
     {
         if ($dept_auto==null){
