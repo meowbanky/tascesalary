@@ -29,6 +29,14 @@ if (isset($_GET['period'])) {
         $tax = (float)($summary['total_tax'] ?? 0);
         $gross_after_tax = $gross - $tax;
 
+        // Query to calculate gross for suspended staff
+        $suspendedSql = "SELECT SUM(m.allow) - SUM(m.deduc)  as total_suspended_gross 
+                         FROM tbl_master m 
+                         JOIN master_staff ms ON m.staff_id = ms.staff_id 
+                         WHERE m.period = :period AND ms.period = :period2 AND ms.BCODE = '43'";
+        $suspendedResult = $app->selectOne($suspendedSql, [':period' => $period, ':period2' => $period]);
+        $total_suspended_gross = (float)($suspendedResult['total_suspended_gross'] ?? 0);
+
         $deductionsSql = "SELECT e.ed_id, e.ed, SUM(m.deduc) as total_amount
                           FROM tbl_master m
                           JOIN tbl_earning_deduction e ON m.allow_id = e.ed_id
@@ -39,46 +47,85 @@ if (isset($_GET['period'])) {
         
         $deductionsData = $app->selectAll($deductionsSql, [':period' => $period]);
 
-        $deductions = [];
+        $main_deductions = [];
         $retained_deductions = [];
-        $total_deductions = 0;
-        $total_retained = 0;
+        $total_main_deductions = 0;
+        $total_retained_deductions = 0;
 
-        $retainedIds = [28, 29, 34, 30, 36];
+        $retainedIds = [28, 34, 30];
 
         foreach ($deductionsData as $d) {
             $amount = (float)$d['total_amount'];
             
-            $deductions[] = [
-                'name' => strtoupper($d['ed']),
-                'amount' => $amount
-            ];
-            $total_deductions += $amount;
-
             if (in_array((int)$d['ed_id'], $retainedIds)) {
                 $retained_deductions[] = [
                     'name' => strtoupper($d['ed']),
                     'amount' => $amount
                 ];
-                $total_retained += $amount;
+                $total_retained_deductions += $amount;
+            } else {
+                $main_deductions[] = [
+                    'name' => strtoupper($d['ed']),
+                    'amount' => $amount
+                ];
+                $total_main_deductions += $amount;
             }
         }
+
+        // Add "SUSPENDED" gross to retained deductions
+        if ($total_suspended_gross > 0) {
+            $retained_deductions[] = [
+                'name' => 'SUSPENDED',
+                'amount' => $total_suspended_gross
+            ];
+        }
         
-        $actual_amount_paid = $gross_after_tax - $total_deductions;
+        $total_retained = $total_retained_deductions + $total_suspended_gross;
+        $actual_amount_paid = $gross_after_tax - $total_retained;
+        $net_pay = $actual_amount_paid - $total_main_deductions;
+
+        // Get business information
+        $businessInfo = $app->getBusinessName();
+        $businessNameRaw = $businessInfo['business_name'] ?? '';
+        $businessName = str_replace(',', ",\n", (string)$businessNameRaw);
+
+        // Get logged-in user details
+        $userDetails = $app->getUsersDetails($_SESSION['SESS_MEMBER_ID']);
+        $printedBy = $userDetails['NAME'] ?? 'Administrator';
 
         // Custom PDF Wrapper
         class MYPDF extends TCPDF {
+            private $printedBy = '';
+            private $currentDate = '';
+
+            public function setCustomFooterData($printedBy, $currentDate) {
+                $this->printedBy = $printedBy !== null ? (string)$printedBy : '';
+                $this->currentDate = $currentDate !== null ? (string)$currentDate : '';
+            }
+
             public function Header() {}
-            public function Footer() {}
+            public function Footer() {
+                $this->SetY(-15);
+                $this->SetFont('helvetica', '', 8);
+                $this->Cell(90, 10, 'Date Printed: ' . $this->currentDate, 0, 0, 'L');
+                $this->Cell(90, 10, 'Printed By: ' . $this->printedBy, 0, 1, 'R');
+            }
         }
 
         $pdf = new MYPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
 
         $pdf->SetCreator(PDF_CREATOR);
-        $pdf->SetAuthor($_SESSION['businessname']);
+        $pdf->SetAuthor($printedBy);
         $pdf->SetTitle('Subvention Analysis Report');
         
-        $pdf->SetMargins(15, 15, 15);
+        $pdf->setPrintHeader(false);
+        $pdf->setPrintFooter(true);
+
+        // Set custom footer data
+        $currentDate = date('Y-m-d H:i:s');
+        $pdf->setCustomFooterData($printedBy, $currentDate);
+
+        $pdf->SetMargins(15, 20, 20);
         $pdf->SetAutoPageBreak(TRUE, 15);
         $pdf->SetFont('helvetica', '', 9);
 
@@ -89,11 +136,30 @@ if (isset($_GET['period'])) {
 
         $pdf->AddPage();
 
-        $businessName = htmlspecialchars(strtoupper($_SESSION['businessname']));
+        // Header with logos and institution name
+        $logoLeft = '../assets/images/ogun_logo.png';
+        $logoRight = '../assets/images/tasce_r_logo.png';
+        if (file_exists($logoLeft) && file_exists($logoRight)) {
+            $pdf->Image($logoLeft, 15, 10, 25, 25, 'PNG', '', 'T', false, 300, '', false, false, 0);
+            $pdf->Image($logoRight, 165, 10, 25, 25, 'PNG', '', 'T', false, 300, '', false, false, 0);
+        }
+
+        // Institution name and report title
+        $pdf->SetY(10);
+        $pdf->SetFont('helvetica', 'B', 10);
+        $pdf->MultiCell(140, 15, $businessName, 0, 'C', false, 1, 35, null, true, 0, false, true, 15, 'M');
+        $pdf->SetFont('helvetica', 'B', 9);
+        $pdf->Cell(0, 5, 'ANALYSIS REPORT', 0, 1, 'C');
+        $pdf->Cell(0, 5, 'FOR THE MONTH OF ' . strtoupper($period_description), 0, 1, 'C');
+        $pdf->Ln(5);
 
         $formatted_gross = fmt($gross);
         $formatted_tax = fmt($tax);
         $formatted_net = fmt($gross_after_tax);
+        $formatted_net_pay = fmt($net_pay);
+        $formatted_actual_paid = fmt($actual_amount_paid);
+
+        $pdf->SetFont('helvetica', '', 9);
 
         $html = <<<EOD
         <style>
@@ -106,12 +172,6 @@ if (isset($_GET['period'])) {
         </style>
 
         <table>
-            <tr>
-                <td colspan="3" class="header-title">$businessName</td>
-            </tr>
-            <tr>
-                <td colspan="3" class="header-title uppercase">ANALYSIS FOR THE MONTH OF {$period_description}</td>
-            </tr>
             <tr>
                 <td class="bold uppercase" width="60%">GROSS</td>
                 <td width="20%"></td>
@@ -136,13 +196,13 @@ if (isset($_GET['period'])) {
             </tr>
             <tr>
                 <td class="bold uppercase">NET PAY</td>
-                <td class="bold right">{$formatted_net}</td>
+                <td class="bold right" style="background-color: #f9f9f9;">{$formatted_net_pay}</td>
                 <td></td>
             </tr>
 EOD;
 
-        // Add all deductions
-        foreach ($deductions as $d) {
+        // Add main deductions
+        foreach ($main_deductions as $d) {
             $formatted_amt = fmt($d['amount']);
             $html .= <<<EOD
             <tr>
@@ -153,7 +213,7 @@ EOD;
 EOD;
         }
 
-        $formatted_total_ded = fmt($total_deductions);
+        $formatted_total_ded = fmt($total_main_deductions);
         $html .= <<<EOD
             <tr>
                 <td class="bold uppercase">TOTAL DEDUCTION</td>
@@ -165,7 +225,8 @@ EOD;
             </tr>
             <tr>
                 <td class="bold uppercase">ACTUAL AMOUNT THAT WILL BE PAID</td>
-                <td colspan="2" class="bold uppercase">NET PAY - TOTAL DEDUCTION</td>
+                <td></td>
+                <td class="bold right">{$formatted_actual_paid}</td>
             </tr>
 EOD;
 
@@ -184,9 +245,14 @@ EOD;
         $formatted_retained_total = fmt($total_retained);
         $html .= <<<EOD
             <tr>
-                <td class="bold uppercase"><br>DEDUCTION RETAINED IN THE SUBVENTION ACCOUNT</td>
-                <td class="bold right" style="font-size: 11pt;"><br>{$formatted_retained_total}</td>
-                <td class="bold uppercase right" style="font-size: 8pt;">ACTUAL AMOUNT +<br>DEDUCTION<br>RETAINED</td>
+                <td class="bold uppercase">DEDUCTION RETAINED IN THE SUBVENTION ACCOUNT</td>
+                <td class="bold right" style="font-size: 11pt;">{$formatted_retained_total}</td>
+                <td></td>
+            </tr>
+            <tr>
+                <td class="bold uppercase">TOTAL GROSS AFTER TAX</td>
+                <td></td>
+                <td class="bold right" style="border-bottom: 3px double black;">{$formatted_net}</td>
             </tr>
         </table>
 EOD;

@@ -95,7 +95,8 @@ $selectPeriods = $App->selectDrop("SELECT concat(payperiods.description,'-',payp
                         <!-- Final Payouts -->
                         <tr class="bg-gray-200">
                             <td class="py-2 px-2 border border-gray-400 font-bold uppercase">ACTUAL AMOUNT THAT WILL BE PAID</td>
-                            <td class="py-2 px-2 border border-gray-400 font-bold uppercase" colspan="2">NET PAY - TOTAL DEDUCTION</td>
+                            <td class="py-2 px-2 border border-gray-400"></td>
+                            <td class="py-2 px-2 border border-gray-400 font-bold text-right" id="val-actual-paid">0.00</td>
                         </tr>
 
                         <!-- Retained Deductions inserted here dynamically -->
@@ -104,8 +105,14 @@ $selectPeriods = $App->selectDrop("SELECT concat(payperiods.description,'-',payp
 
                         <tr class="bg-gray-100">
                             <td class="py-2 px-2 border border-gray-400 font-bold uppercase">DEDUCTION RETAINED IN THE SUBVENTION ACCOUNT</td>
-                            <td class="py-2 px-2 border border-gray-400 font-bold text-right text-lg" id="val-retained-total">0.00</td>
-                            <td class="py-2 px-2 border border-gray-400 font-bold uppercase text-right text-sm leading-tight text-gray-700">ACTUAL AMOUNT +<br>DEDUCTION<br>RETAINED</td>
+                            <td class="py-2 px-2 border border-gray-400 font-bold text-right" id="val-retained-total">0.00</td>
+                            <td class="py-2 px-2 border border-gray-400"></td>
+                        </tr>
+
+                        <tr class="bg-gray-200">
+                            <td class="py-2 px-2 border border-gray-400 font-bold uppercase">TOTAL GROSS AFTER TAX</td>
+                            <td class="py-2 px-2 border border-gray-400"></td>
+                            <td class="py-2 px-2 border border-gray-400 font-bold text-right border-b-4 border-double" id="val-total-gross-bottom">0.00</td>
                         </tr>
 
                     </tbody>
@@ -157,7 +164,7 @@ $(document).ready(function() {
                     $('#val-net-gross').text(response.data.gross_after_tax.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
                     
                     $('#val-net-pay-top').text(response.data.gross_after_tax.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
-                    $('#val-net-pay').text(response.data.gross_after_tax.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+                    $('#val-net-pay').text(response.data.net_pay.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
 
                     // Iterate Deductions
                     $('#deductionsList').empty();
@@ -188,6 +195,8 @@ $(document).ready(function() {
 
                     // Retained Total
                     $('#val-retained-total').text(response.data.total_retained.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+                    $('#val-actual-paid').text(response.data.actual_amount_paid.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
+                    $('#val-total-gross-bottom').text(response.data.gross_after_tax.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
 
                     // Show container and buttons
                     $('#resultContainer').removeClass('hidden');

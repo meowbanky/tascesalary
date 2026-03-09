@@ -13,8 +13,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['period'])) {
 
     try {
         // Query to get overall Gross and Tax for the period
-        // tbl_master.allow represents the gross earnings
-        // tbl_master.deduc where allow_id = 24 represents TAX
         $summarySql = "SELECT 
                         SUM(allow) AS total_gross,
                         (SELECT SUM(deduc) FROM tbl_master WHERE period = :period AND allow_id = 24) AS total_tax
@@ -26,55 +24,69 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['period'])) {
         $tax = (float)($summary['total_tax'] ?? 0);
         $gross_after_tax = $gross - $tax;
 
-        // Query to get all active deductions for this period
-        // Exclude TAX (ed_id = 24) since it's already accounted for
+        // Query to calculate gross for suspended staff
+        $suspendedSql = "SELECT SUM(m.allow) - SUM(m.deduc)  as total_suspended_gross 
+                         FROM tbl_master m 
+                         INNER JOIN master_staff ms ON m.staff_id = ms.staff_id 
+                         WHERE m.period = :period AND ms.period = :period2 AND ms.BCODE = '43'";
+        $suspendedResult = $app->selectOne($suspendedSql, [':period' => $period, ':period2' => $period]);
+        $total_suspended_gross = (float)($suspendedResult['total_suspended_gross'] ?? 0);
+
+        // Query to get all active deductions for this period, excluding TAX (ed_id = 24)
         $deductionsSql = "SELECT e.ed_id, e.ed, SUM(m.deduc) as total_amount
                           FROM tbl_master m
                           JOIN tbl_earning_deduction e ON m.allow_id = e.ed_id
-                          WHERE m.period = :period AND e.edType = 2 AND e.status = 'Active' AND e.ed_id != 24
+                          WHERE m.period = :period AND e.edType = 2 AND e.status = 'Active' AND e.ed_id != 24     
                           GROUP BY e.ed_id, e.ed
                           HAVING total_amount > 0
                           ORDER BY e.ed_id ASC";
         
         $deductionsData = $app->selectAll($deductionsSql, [':period' => $period]);
 
-        $deductions = [];
+        $main_deductions = [];
         $retained_deductions = [];
-        $total_deductions = 0;
-        $total_retained = 0;
+        $total_main_deductions = 0;
+        $total_retained_deductions = 0;
 
-        // The specific IDs to be listed in the bottom "Retained" section based on the user's report mockup
+        // Specific IDs to be listed in the bottom "Retained" section
         $retainedIds = [
             28, // COLL. FEE
-            29, // SCH FEES NEW
             34, // SALARY ADV.
-            30, // RENT
-            36  // NASU LOAN NEW
+            30  // RENT
         ];
 
         foreach ($deductionsData as $d) {
             $amount = (float)$d['total_amount'];
             
-            // All deductions are added to the general deduction list (including retained ones)
-            $deductions[] = [
-                'id' => $d['ed_id'],
-                'name' => $d['ed'],
-                'amount' => $amount
-            ];
-            $total_deductions += $amount;
-
-            // Furthermore, the retained ones are copied into the retained list
             if (in_array((int)$d['ed_id'], $retainedIds)) {
                 $retained_deductions[] = [
                     'id' => $d['ed_id'],
                     'name' => $d['ed'],
                     'amount' => $amount
                 ];
-                $total_retained += $amount;
+                $total_retained_deductions += $amount;
+            } else {
+                $main_deductions[] = [
+                    'id' => $d['ed_id'],
+                    'name' => $d['ed'],
+                    'amount' => $amount
+                ];
+                $total_main_deductions += $amount;
             }
         }
 
-        $actual_amount_paid = $gross_after_tax - $total_deductions;
+        // Add "SUSPENDED" gross to retained deductions
+        if ($total_suspended_gross > 0) {
+            $retained_deductions[] = [
+                'id' => 'suspended',
+                'name' => 'SUSPENDED',
+                'amount' => $total_suspended_gross
+            ];
+        }
+
+        $total_retained = $total_retained_deductions + $total_suspended_gross;
+        $actual_amount_paid = $gross_after_tax - $total_retained;
+        $net_pay = $actual_amount_paid - $total_main_deductions;
 
         $response = [
             'status' => 'success',
@@ -83,9 +95,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['period'])) {
                 'gross' => $gross,
                 'tax' => $tax,
                 'gross_after_tax' => $gross_after_tax,
+                'net_pay' => $net_pay,
                 'actual_amount_paid' => $actual_amount_paid,
-                'deductions' => $deductions,
-                'total_deductions' => $total_deductions,
+                'deductions' => $main_deductions,
+                'total_deductions' => $total_main_deductions,
                 'retained_deductions' => $retained_deductions,
                 'total_retained' => $total_retained
             ]

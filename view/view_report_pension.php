@@ -145,7 +145,7 @@ $pfas = $App->selectDrop("SELECT PFACODE, PFANAME FROM tbl_pfa");
                             searching: false,
                             pageLength: 100,
                             lengthChange: false,
-                            ordering: true,
+                            ordering: false,
                             dom: '<"flex items-center justify-between my-2"lf>t<"flex items-center justify-between"ip>',
                         });
                     }
