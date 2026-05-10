@@ -56,38 +56,39 @@ if (isset($_GET['payperiod'])) {
 
     // Set column widths
     $sheet->getColumnDimension('A')->setWidth(15); // Staff No
-    $sheet->getColumnDimension('B')->setWidth(30); // Name
-    $sheet->getColumnDimension('C')->setWidth(25); // Salary Structure
-    $sheet->getColumnDimension('D')->setWidth(25); // Department
-    $sheet->getColumnDimension('E')->setWidth(15); // Grade/Step
-    $sheet->getColumnDimension('F')->setWidth(20); // Account No
-    $sheet->getColumnDimension('G')->setWidth(20); // Bank
-    $sheet->getColumnDimension('H')->setWidth(15); // Gross
-    $sheet->getColumnDimension('I')->setWidth(15); // Deduction
-    $sheet->getColumnDimension('J')->setWidth(15); // Net
+    $sheet->getColumnDimension('B')->setWidth(20); // TIN
+    $sheet->getColumnDimension('C')->setWidth(30); // Name
+    $sheet->getColumnDimension('D')->setWidth(25); // Salary Structure
+    $sheet->getColumnDimension('E')->setWidth(25); // Department
+    $sheet->getColumnDimension('F')->setWidth(15); // Grade/Step
+    $sheet->getColumnDimension('G')->setWidth(20); // Account No
+    $sheet->getColumnDimension('H')->setWidth(20); // Bank
+    $sheet->getColumnDimension('I')->setWidth(15); // Gross
+    $sheet->getColumnDimension('J')->setWidth(15); // Deduction
+    $sheet->getColumnDimension('K')->setWidth(15); // Net
 
     // Header
-    $sheet->mergeCells('A1:J1');
+    $sheet->mergeCells('A1:K1');
     $sheet->setCellValue('A1', $businessName);
     $sheet->getStyle('A1')->getFont()->setBold(true)->setSize(12);
     $sheet->getStyle('A1')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
-    $sheet->mergeCells('A2:J2');
+    $sheet->mergeCells('A2:K2');
     $sheet->setCellValue('A2', 'GROSS PAY REPORT');
     $sheet->getStyle('A2')->getFont()->setBold(true);
     $sheet->getStyle('A2')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
-    $sheet->mergeCells('A3:J3');
+    $sheet->mergeCells('A3:K3');
     $sheet->setCellValue('A3', 'Period: ' . $periodDesc);
     $sheet->getStyle('A3')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
     // Table header
     $headerRow = 4;
-    $headers = ['Staff No', 'Name', 'Salary Structure', 'Department', 'Grade/Step', 'Account No', 'Bank', 'Gross', 'Deduction', 'Net'];
+    $headers = ['Staff No', 'TIN', 'Name', 'Salary Structure', 'Department', 'Grade/Step', 'Account No', 'Bank', 'Gross', 'Deduction', 'Net'];
     $sheet->fromArray($headers, NULL, 'A' . $headerRow);
-    $sheet->getStyle('A' . $headerRow . ':J' . $headerRow)->getFont()->setBold(true);
-    $sheet->getStyle('A' . $headerRow . ':J' . $headerRow)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('D3D3D3');
-    $sheet->getStyle('A' . $headerRow . ':J' . $headerRow)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+    $sheet->getStyle('A' . $headerRow . ':K' . $headerRow)->getFont()->setBold(true);
+    $sheet->getStyle('A' . $headerRow . ':K' . $headerRow)->getFill()->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('D3D3D3');
+    $sheet->getStyle('A' . $headerRow . ':K' . $headerRow)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
 
     // Table data
     $row = $headerRow + 1;
@@ -98,26 +99,27 @@ if (isset($_GET['payperiod'])) {
         $net = $allow - $deduc;
 
         $sheet->setCellValue('A' . $row, $grossPay['OGNO'] ?? '');
-        $sheet->setCellValue('B' . $row, $grossPay['NAME'] ?? '');
-        $sheet->setCellValue('C' . $row, $grossPay['SalaryType'] ?? '');
-        $sheet->setCellValue('D' . $row, $grossPay['dept'] ?? '');
-        $sheet->setCellValue('E' . $row, ($grossPay['grade'] ?? '') . '/' . ($grossPay['step'] ?? ''));
-        $sheet->setCellValue('F' . $row, $grossPay['acctno'] ?? '');
-        $sheet->setCellValue('G' . $row, $grossPay['bankname'] ?? '');
-        $sheet->setCellValue('H' . $row, $allow);
-        $sheet->setCellValue('I' . $row, $deduc);
-        $sheet->setCellValue('J' . $row, $net);
+        $sheet->setCellValue('B' . $row, $grossPay['TIN'] ?? '');
+        $sheet->setCellValue('C' . $row, $grossPay['NAME'] ?? '');
+        $sheet->setCellValue('D' . $row, $grossPay['SalaryType'] ?? '');
+        $sheet->setCellValue('E' . $row, $grossPay['dept'] ?? '');
+        $sheet->setCellValue('F' . $row, ($grossPay['grade'] ?? '') . '/' . ($grossPay['step'] ?? ''));
+        $sheet->setCellValue('G' . $row, $grossPay['acctno'] ?? '');
+        $sheet->setCellValue('H' . $row, $grossPay['bankname'] ?? '');
+        $sheet->setCellValue('I' . $row, $allow);
+        $sheet->setCellValue('J' . $row, $deduc);
+        $sheet->setCellValue('K' . $row, $net);
 
         // Apply text wrapping
-        $sheet->getStyle('B' . $row)->getAlignment()->setWrapText(true);
         $sheet->getStyle('C' . $row)->getAlignment()->setWrapText(true);
         $sheet->getStyle('D' . $row)->getAlignment()->setWrapText(true);
-        $sheet->getStyle('G' . $row)->getAlignment()->setWrapText(true);
+        $sheet->getStyle('E' . $row)->getAlignment()->setWrapText(true);
+        $sheet->getStyle('H' . $row)->getAlignment()->setWrapText(true);
 
         // Apply number formatting
-        $sheet->getStyle('H' . $row . ':J' . $row)->getNumberFormat()->setFormatCode('#,##0.00');
+        $sheet->getStyle('I' . $row . ':K' . $row)->getNumberFormat()->setFormatCode('#,##0.00');
 
-        $sheet->getStyle('A' . $row . ':J' . $row)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+        $sheet->getStyle('A' . $row . ':K' . $row)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
 
         $totalGross += $allow;
         $totalDeduc += $deduc;
@@ -127,13 +129,13 @@ if (isset($_GET['payperiod'])) {
 
     // Totals
     $sheet->setCellValue('A' . $row, 'Total');
-    $sheet->mergeCells('A' . $row . ':G' . $row);
-    $sheet->setCellValue('H' . $row, $totalGross);
-    $sheet->setCellValue('I' . $row, $totalDeduc);
-    $sheet->setCellValue('J' . $row, $totalNet);
-    $sheet->getStyle('A' . $row . ':J' . $row)->getFont()->setBold(true);
-    $sheet->getStyle('H' . $row . ':J' . $row)->getNumberFormat()->setFormatCode('#,##0.00');
-    $sheet->getStyle('A' . $row . ':J' . $row)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+    $sheet->mergeCells('A' . $row . ':H' . $row);
+    $sheet->setCellValue('I' . $row, $totalGross);
+    $sheet->setCellValue('J' . $row, $totalDeduc);
+    $sheet->setCellValue('K' . $row, $totalNet);
+    $sheet->getStyle('A' . $row . ':K' . $row)->getFont()->setBold(true);
+    $sheet->getStyle('I' . $row . ':K' . $row)->getNumberFormat()->setFormatCode('#,##0.00');
+    $sheet->getStyle('A' . $row . ':K' . $row)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
 
     // Generate Excel file
     $filename = 'GrossPay_Report_' . str_replace(' ', '_', $periodDesc) . '.xlsx';

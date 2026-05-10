@@ -113,6 +113,11 @@
                         </a>
                     </li>
                     <li class="menu-item">
+                        <a href="deduction_payee_config.php" class="menu-link">
+                            <span class="menu-text"><i class="mgc_paper_line"></i>Deduction Payees</span>
+                        </a>
+                    </li>
+                    <li class="menu-item">
                         <a href="call_backup.php" class="menu-link">
                             <span class="menu-text"><i class="mgc_database_line"></i>Database Backup</span>
                         </a>
@@ -166,6 +171,11 @@
                     <li class="menu-item">
                         <a href="report_deductionlist.php" class="menu-link">
                             <span class="menu-text"><i class="mgc_building_2_line"></i>All/Ded List</span>
+                        </a>
+                    </li>
+                    <li class="menu-item">
+                        <a href="report_deduction_summary.php" class="menu-link">
+                            <span class="menu-text"><i class="mgc_paper_line"></i>Deduction Summary</span>
                         </a>
                     </li>
                     <li class="menu-item">

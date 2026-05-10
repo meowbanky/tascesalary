@@ -382,7 +382,7 @@ FROM
         if (!in_array($columnName, $allowedColumns)) {
             throw new InvalidArgumentException('Invalid column name provided.');
         }
-        $query = "SELECT CAST(SUM($columnName) AS DECIMAL(15,2)) AS value, tbl_earning_deduction.edDesc
+        $query = "SELECT tbl_master.allow_id, CAST(SUM($columnName) AS DECIMAL(15,2)) AS value, tbl_earning_deduction.edDesc
               FROM tbl_master
               INNER JOIN tbl_earning_deduction ON tbl_master.allow_id = tbl_earning_deduction.ed_id
               WHERE $columnName <> 0 AND period = :period
@@ -1531,6 +1531,55 @@ public function updateGradeStep($grade,$step,$staff_id)
         }
         return json_encode($data);
 
+    }
+
+    public function getDeductionSummaryWithPayees($period) {
+        $deductionTotals = $this->getReportSummary($period, 'deduc');
+        if (!$deductionTotals) return [];
+        $finalSummary = [];
+
+        foreach ($deductionTotals as $dTotal) {
+            $allow_id = $dTotal['allow_id'];
+
+            // Fetch payee(s) for this allow_id (deduction)
+            $payees = $this->selectAll("SELECT * FROM tbl_deduction_payee WHERE ed_id = :ed_id", [':ed_id' => $allow_id]);
+
+            if (!$payees) {
+                // Default if no payee mapping exists yet, show total as one entry
+                $finalSummary[] = [
+                    'payee_name' => $dTotal['edDesc'],
+                    'bank_name' => '',
+                    'account_no' => '',
+                    'amount' => $dTotal['value']
+                ];
+                continue;
+            }
+
+            // Calculate total fixed amount for this deduction
+            $totalFixed = 0;
+            foreach ($payees as $p) {
+                $totalFixed += isset($p['fixed_amount']) ? floatval($p['fixed_amount']) : 0;
+            }
+
+            $remainder = $dTotal['value'] - $totalFixed;
+            if ($remainder < 0) $remainder = 0;
+
+            foreach ($payees as $p) {
+                $amount = isset($p['fixed_amount']) ? floatval($p['fixed_amount']) : 0;
+                if (isset($p['percentage']) && $p['percentage'] > 0) {
+                    $amount += ($remainder * floatval($p['percentage']) / 100);
+                }
+                
+                $finalSummary[] = [
+                    'payee_name' => $p['payee_name'],
+                    'bank_name' => $p['bank_name'],
+                    'account_no' => $p['account_no'],
+                    'amount' => $amount
+                ];
+            }
+        }
+
+        return $finalSummary;
     }
 
     public function checkToken($token)

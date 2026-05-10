@@ -24,9 +24,10 @@ if(isset($_GET['payperiod'])) {
     }
 
 // Add standard column headings
-    $standardHeadings = ['S/NO', 'Empno', 'Name'];
+    $standardHeadings = ['S/NO', 'Empno', 'TIN', 'Name'];
     $standardHeadings = array_merge($standardHeadings, $headings_allow);
 
+    $standardHeadings[] = 'Pension';
     $standardHeadings[] = 'Total';  // Add "Total" at the end
 
 // Prepare the Spreadsheet
@@ -63,9 +64,11 @@ if(isset($_GET['payperiod'])) {
             master_staff.STEP,
             master_staff.GRADE,
             master_staff.staff_id,
+            master_staff.OGNO,
             master_staff.NAME,
             master_staff.ACCTNO,
-            employee.EMAIL
+            employee.EMAIL,
+            employee.TIN
         FROM master_staff
         LEFT JOIN tbl_dept ON tbl_dept.dept_id = master_staff.DEPTCD
         LEFT JOIN tbl_bank ON tbl_bank.BCODE = master_staff.BCODE
@@ -76,7 +79,8 @@ if(isset($_GET['payperiod'])) {
 
             $Data = [
                 'S/NO' => $counter,
-                'Empno' => $row_staff['staff_id'],
+                'Empno' => $row_staff['OGNO'],
+                'TIN' => $row_staff['TIN'] ?? '',
                 'Name' => $row_staff['NAME']
             ];
 
@@ -98,6 +102,15 @@ if(isset($_GET['payperiod'])) {
                 $Data[$edDesc] = $amount;
                 $total += $amount;
             }
+
+            // Fetch Pension
+            $queryPension = $App->link->prepare("SELECT SUM(deduc) as pension_val FROM tbl_master INNER JOIN tbl_earning_deduction ON tbl_master.allow_id = tbl_earning_deduction.ed_id WHERE staff_id = ? AND period = ? AND tbl_earning_deduction.ed LIKE 'PENSION%'");
+            $queryPension->execute([$thisemployee, $period]);
+            $row_pension = $queryPension->fetch(PDO::FETCH_ASSOC);
+            $pension = floatval($row_pension['pension_val'] ?? 0);
+            $Data['Pension'] = $pension;
+            // Note: Total already includes allowances, often pension is not added to gross but the user didn't specify if Pension should be in Total. 
+            // Usually Tax report Total is Gross. I will keep it as is.
 
             $Data['Total'] = $total; // Append the Total at the end
 

@@ -33,7 +33,7 @@ if (isset($_GET['payperiod'])) {
     }
 
     // Add standard column headings
-    $standardHeadings = ['S/NO', 'Empno', 'Name','Salary Structure','Grade/Step'];
+    $standardHeadings = ['S/NO', 'Empno', 'TIN', 'Name','Salary Structure','Grade/Step'];
     $standardHeadings = array_merge($standardHeadings, $headings_allow);
 
     $standardHeadings[] = 'Total Allowance';  // Add "Total Allowance" after allowances
@@ -75,11 +75,14 @@ if (isset($_GET['payperiod'])) {
             tbl_dept.dept, 
             master_staff.STEP, 
             master_staff.GRADE, 
-            master_staff.staff_id, 
+            master_staff.staff_id,
+            master_staff.OGNO,  
             master_staff.`NAME`, 
             master_staff.ACCTNO, 
             master_staff.OGNO, 
-            employee.EMAIL,tbl_salaryType.SalaryType
+            employee.EMAIL,
+            employee.TIN,
+            tbl_salaryType.SalaryType
         FROM
             master_staff
             LEFT JOIN
@@ -105,9 +108,10 @@ if (isset($_GET['payperiod'])) {
             $Data = [
                 'S/NO' => $counter,
                 'Empno' => $row_staff['OGNO'],
+                'TIN' => $row_staff['TIN'] ?? '',
                 'Name' => $row_staff['NAME'],
                 'Salary Structure' => $row_staff['SalaryType'],
-                'Grade/Step' =>$row_staff['GRADE'].'/'.$row_staff['STEP']
+                'Grade/Step' => $row_staff['GRADE'].' / '.$row_staff['STEP']
             ];
 
             foreach ($headings_allow as $heading) {

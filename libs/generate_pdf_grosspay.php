@@ -120,9 +120,10 @@ if (isset($_GET['payperiod'])) {
     $pdf->SetFillColor(200, 200, 200);
     $pdf->SetFont('helvetica', 'B', 7);
     $pdf->Cell(15, 8, 'Staff No', 1, 0, 'L', 1);
-    $pdf->Cell(30, 8, 'Name', 1, 0, 'L', 1);
-    $pdf->Cell(23, 8, 'Salary Structure', 1, 0, 'L', 1);
-    $pdf->Cell(23, 8, 'Department', 1, 0, 'L', 1);
+    $pdf->Cell(20, 8, 'TIN', 1, 0, 'L', 1);
+    $pdf->Cell(25, 8, 'Name', 1, 0, 'L', 1);
+    $pdf->Cell(20, 8, 'Salary Structure', 1, 0, 'L', 1);
+    $pdf->Cell(20, 8, 'Department', 1, 0, 'L', 1);
     $pdf->Cell(14, 8, 'Grade/Step', 1, 0, 'C', 1);
     $pdf->Cell(18, 8, 'Account No', 1, 0, 'L', 1);
     $pdf->Cell(18, 8, 'Bank', 1, 0, 'L', 1);
@@ -139,9 +140,9 @@ if (isset($_GET['payperiod'])) {
         $net = $allow - $deduc;
 
         // Calculate row height
-        $nameLines = $pdf->getNumLines($grossPay['NAME'] ?? '', 30);
-        $salaryLines = $pdf->getNumLines($grossPay['SalaryType'] ?? '', 23);
-        $deptLines = $pdf->getNumLines($grossPay['dept'] ?? '', 23);
+        $nameLines = $pdf->getNumLines($grossPay['NAME'] ?? '', 25);
+        $salaryLines = $pdf->getNumLines($grossPay['SalaryType'] ?? '', 20);
+        $deptLines = $pdf->getNumLines($grossPay['dept'] ?? '', 20);
         $bankLines = $pdf->getNumLines($grossPay['bankname'] ?? '', 18);
         $rowHeight = max(6, 6 * max($nameLines, $salaryLines, $deptLines, $bankLines));
 
@@ -151,9 +152,10 @@ if (isset($_GET['payperiod'])) {
             $pdf->SetFillColor(200, 200, 200);
             $pdf->SetFont('helvetica', 'B', 7);
             $pdf->Cell(15, 8, 'Staff No', 1, 0, 'L', 1);
-            $pdf->Cell(30, 8, 'Name', 1, 0, 'L', 1);
-            $pdf->Cell(23, 8, 'Salary Structure', 1, 0, 'L', 1);
-            $pdf->Cell(23, 8, 'Department', 1, 0, 'L', 1);
+            $pdf->Cell(20, 8, 'TIN', 1, 0, 'L', 1);
+            $pdf->Cell(25, 8, 'Name', 1, 0, 'L', 1);
+            $pdf->Cell(20, 8, 'Salary Structure', 1, 0, 'L', 1);
+            $pdf->Cell(20, 8, 'Department', 1, 0, 'L', 1);
             $pdf->Cell(14, 8, 'Grade/Step', 1, 0, 'C', 1);
             $pdf->Cell(18, 8, 'Account No', 1, 0, 'L', 1);
             $pdf->Cell(18, 8, 'Bank', 1, 0, 'L', 1);
@@ -164,9 +166,10 @@ if (isset($_GET['payperiod'])) {
         }
 
         $pdf->Cell(15, $rowHeight, $grossPay['OGNO'] ?? '', 1, 0, 'L');
-        $pdf->MultiCell(30, $rowHeight, $grossPay['NAME'] ?? '', 1, 'L', false, 0);
-        $pdf->MultiCell(23, $rowHeight, $grossPay['SalaryType'] ?? '', 1, 'L', false, 0);
-        $pdf->MultiCell(23, $rowHeight, $grossPay['dept'] ?? '', 1, 'L', false, 0);
+        $pdf->Cell(20, $rowHeight, $grossPay['TIN'] ?? '', 1, 0, 'L');
+        $pdf->MultiCell(25, $rowHeight, $grossPay['NAME'] ?? '', 1, 'L', false, 0);
+        $pdf->MultiCell(20, $rowHeight, $grossPay['SalaryType'] ?? '', 1, 'L', false, 0);
+        $pdf->MultiCell(20, $rowHeight, $grossPay['dept'] ?? '', 1, 'L', false, 0);
         $pdf->Cell(14, $rowHeight, ($grossPay['grade'] ?? '') . '/' . ($grossPay['step'] ?? ''), 1, 0, 'C');
         $pdf->Cell(18, $rowHeight, $grossPay['acctno'] ?? '', 1, 0, 'L');
         $pdf->MultiCell(18, $rowHeight, $grossPay['bankname'] ?? '', 1, 'L', false, 0);
@@ -184,7 +187,7 @@ if (isset($_GET['payperiod'])) {
     if ($pdf->GetY() + 6 > $pdf->getPageHeight() - 15) {
         $pdf->AddPage();
     }
-    $pdf->Cell(141, 6, 'Total', 1, 0, 'R');
+    $pdf->Cell(151, 6, 'Total', 1, 0, 'R');
     $pdf->Cell(14, 6, number_format($totalGross, 2), 1, 0, 'R');
     $pdf->Cell(14, 6, number_format($totalDeduc, 2), 1, 0, 'R'); // Fixed: Changed totalGross to totalDeduc
     $pdf->Cell(14, 6, number_format($totalNet, 2), 1, 1, 'R');
